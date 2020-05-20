@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0"?>
 <package format="2">
-  <name>open_manipulator_controller</name>
+  <name>arm_manipulator_controller</name>
   <version>2.0.1</version>
   <description>OpenManipulator controller package</description>
 

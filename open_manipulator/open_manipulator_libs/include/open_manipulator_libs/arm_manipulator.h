@@ -16,8 +16,8 @@
 
 /* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */
 
-#ifndef OPEN_MANIPULTOR_H_
-#define OPEN_MANIPULTOR_H_
+#ifndef ARM_MANIPULTOR_H_
+#define ARM_MANIPULTOR_H_
 
 #include "dynamixel.h"
 #include "custom_trajectory.h"
@@ -36,7 +36,7 @@
 #define Y_AXIS robotis_manipulator::math::vector3(0.0, 1.0, 0.0)
 #define Z_AXIS robotis_manipulator::math::vector3(0.0, 0.0, 1.0)
 
-class OpenManipulator : public robotis_manipulator::RobotisManipulator
+class ArmManipulator : public robotis_manipulator::RobotisManipulator
 {
   
 private:
@@ -46,11 +46,11 @@ private:
   robotis_manipulator::CustomTaskTrajectory *custom_trajectory_[CUSTOM_TRAJECTORY_SIZE];
 
 public:
-  OpenManipulator();
-  virtual ~OpenManipulator();
+  ArmManipulator();
+  virtual ~ArmManipulator();
 
-  void initOpenManipulator(bool using_actual_robot_state, STRING usb_port = "/dev/ttyUSB0", STRING baud_rate = "1000000", float control_loop_time = 0.010);
-  void processOpenManipulator(double present_time);
+  void initArmManipulator(bool using_actual_robot_state, STRING usb_port = "/dev/ttyUSB0", STRING baud_rate = "1000000", float control_loop_time = 0.010, STRING side = "R");
+  void processArmManipulator(double present_time);
 };
 
-#endif // OPEN_MANIPULTOR_H_
+#endif // ARM_MANIPULTOR_H_

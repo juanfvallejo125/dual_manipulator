@@ -49,7 +49,7 @@ include_directories(
 )
 
 add_library(open_manipulator_libs
-  src/open_manipulator.cpp
+  src/arm_manipulator.cpp
   src/custom_trajectory.cpp
   src/dynamixel.cpp
   src/kinematics.cpp

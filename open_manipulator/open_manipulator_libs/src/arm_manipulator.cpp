@@ -16,11 +16,13 @@
 
 /* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */
 
-#include "../include/open_manipulator_libs/open_manipulator.h"
+/* Modified by: Juan Vallejo */
 
-OpenManipulator::OpenManipulator()
+#include "../include/open_manipulator_libs/arm_manipulator.h"
+
+ArmManipulator::ArmManipulator()
 {}
-OpenManipulator::~OpenManipulator()
+ArmManipulator::~ArmManipulator()
 {
   delete kinematics_;
   delete actuator_;
@@ -29,17 +31,17 @@ OpenManipulator::~OpenManipulator()
     delete custom_trajectory_[index];
 }
 
-void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING usb_port, STRING baud_rate, float control_loop_time)
+void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING usb_port, STRING baud_rate, float control_loop_time, STRING side)
 {
   /*****************************************************************************
   ** Initialize Manipulator Parameter
   *****************************************************************************/
-  addWorld("world",   // world name
-          "joint1"); // child name
+  addWorld("base",   // world name
+          "J1_"+side); // child name
 
-  addJoint("joint1",  // my name
-           "world",   // parent name
-           "joint2",  // child name
+  addJoint("J1_"+side,  // my name
+           "base",   // parent name
+           "J2_"+side,  // child name
             math::vector3(0.012, 0.0, 0.017),                // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Z_AXIS,    // axis of rotation
@@ -54,9 +56,9 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
             math::vector3(-3.0184870e-04, 5.4043684e-04, 0.018 + 2.9433464e-02)   // COM
             );
 
-  addJoint("joint2",  // my name
-            "joint1",  // parent name
-            "joint3",  // child name
+  addJoint("J2_"+side,  // my name
+            "J1_"+side,  // parent name
+            "J3_"+side,  // child name
             math::vector3(0.0, 0.0, 0.0595),                // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -71,9 +73,9 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
             math::vector3(1.0308393e-02, 3.7743363e-04, 1.0170197e-01)            // COM
             );
 
-  addJoint("joint3",  // my name
-            "joint2",  // parent name
-            "joint4",  // child name
+  addJoint("J3_"+side,  // my name
+            "J2_"+side,  // parent name
+            "J4_"+side,  // child name
             math::vector3(0.024, 0.0, 0.128),               // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -88,9 +90,9 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
             math::vector3(9.0909590e-02, 3.8929816e-04, 2.2413279e-04)            // COM
             );
 
-  addJoint("joint4",  // my name
-            "joint3",  // parent name
-            "gripper", // child name
+  addJoint("J4_"+side,  // my name
+            "J3_"+side,  // parent name
+            "wristJ1_"+side, // child name
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -105,8 +107,41 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
             math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
             );
 
-  addTool("gripper",  // my name
-          "joint4",   // parent name
+  addJoint("wristJ1_"+side,  // my name
+            "J4_"+side,  // parent name
+            "wristJ2_"+side, // child name
+            math::vector3(0.124, 0.0, 0.0),                 // relative position
+            math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
+            Y_AXIS,    // axis of rotation
+            14,        // actuator id
+            2.0,       // max joint limit (2.0 rad)
+            -1.8,      // min joint limit (-1.8 rad)
+            1.0,       // coefficient
+            1.4327573e-01,                                                        // mass
+            math::inertiaMatrix(8.0870749e-05, 0.0, -1.0157896e-06,
+                                7.5980465e-05, 0.0,
+                                9.3127351e-05),                                   // inertial tensor
+            math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
+            );
+  addJoint("wristJ2_"+side,  // my name
+            "wristJ1_"+side,  // parent name
+            "gripper_"+side, // child name
+            math::vector3(0.124, 0.0, 0.0),                 // relative position
+            math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
+            Y_AXIS,    // axis of rotation
+            14,        // actuator id
+            2.0,       // max joint limit (2.0 rad)
+            -1.8,      // min joint limit (-1.8 rad)
+            1.0,       // coefficient
+            1.4327573e-01,                                                        // mass
+            math::inertiaMatrix(8.0870749e-05, 0.0, -1.0157896e-06,
+                                7.5980465e-05, 0.0,
+                                9.3127351e-05),                                   // inertial tensor
+            math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
+            );
+
+  addTool("gripper_"+side,  // my name
+          "wristJ2_"+side,   // parent name
           math::vector3(0.126, 0.0, 0.0),                 // relative position
           math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
           15,         // actuator id
@@ -119,13 +154,16 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
                               1.7605306e-05),                                   // inertial tensor
           math::vector3(0.028 + 8.3720668e-03, 0.0246, -4.2836895e-07)          // COM
           );
+ 
+
         
   /*****************************************************************************
   ** Initialize Kinematics 
   *****************************************************************************/
-  kinematics_ = new kinematics::SolverCustomizedforOMChain();
+  // Add in later
+  //kinematics_ = new kinematics::SolverCustomizedforOMChain();
 //  kinematics_ = new kinematics::SolverUsingCRAndSRPositionOnlyJacobian();
-  addKinematics(kinematics_);
+  //addKinematics(kinematics_);
 
   if(using_actual_robot_state)
   {
@@ -140,11 +178,21 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
     void *p_dxl_comm_arg = &dxl_comm_arg;
 
     // Set joint actuator id
+    // Right arm uses 11 - 16, Left arm uses 21 - 26
+    int id_offset = 0;
+    if(side == "R"){
+      id_offset = 10;
+    }else{
+      id_offset = 20;
+    }
     std::vector<uint8_t> jointDxlId;
-    jointDxlId.push_back(11);
-    jointDxlId.push_back(12);
-    jointDxlId.push_back(13);
-    jointDxlId.push_back(14);
+    jointDxlId.push_back(id_offset+1);
+    jointDxlId.push_back(id_offset+2);
+    jointDxlId.push_back(id_offset+3);
+    jointDxlId.push_back(id_offset+4);
+    jointDxlId.push_back(id_offset+5);
+    jointDxlId.push_back(id_offset+6);
+
     addJointActuator(JOINT_DYNAMIXEL, actuator_, jointDxlId, p_dxl_comm_arg);
 
     // Set joint actuator control mode
@@ -158,7 +206,7 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
     *****************************************************************************/
     tool_ = new dynamixel::GripperDynamixel();
 
-    uint8_t gripperDxlId = 15;
+    uint8_t gripperDxlId = id_offset+7;
     addToolActuator(TOOL_DYNAMIXEL, tool_, gripperDxlId, p_dxl_comm_arg);
 
     // Set gripper actuator control mode
@@ -199,7 +247,7 @@ void OpenManipulator::initOpenManipulator(bool using_actual_robot_state, STRING 
   addCustomTrajectory(CUSTOM_TRAJECTORY_HEART, custom_trajectory_[3]);
 }
 
-void OpenManipulator::processOpenManipulator(double present_time)
+void ArmManipulator::processArmManipulator(double present_time)
 {
   // Planning (ik)
   JointWaypoint goal_joint_value = getJointGoalValueFromTrajectory(present_time);

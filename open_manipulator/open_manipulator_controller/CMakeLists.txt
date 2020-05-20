@@ -2,7 +2,7 @@
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
 cmake_minimum_required(VERSION 2.8.3)
-project(open_manipulator_controller)
+project(arm_manipulator_controller)
 
 add_compile_options(-std=c++11)
 
@@ -62,14 +62,14 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
 )
 
-add_executable(open_manipulator_controller src/open_manipulator_controller.cpp)
-add_dependencies(open_manipulator_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(open_manipulator_controller ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+add_executable(arm_manipulator_controller src/arm_manipulator_controller.cpp)
+add_dependencies(arm_manipulator_controller ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(arm_manipulator_controller ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS open_manipulator_controller
+install(TARGETS arm_manipulator_controller
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

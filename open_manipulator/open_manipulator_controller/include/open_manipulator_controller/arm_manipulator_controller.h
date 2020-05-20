@@ -31,7 +31,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 
-#include "open_manipulator_libs/open_manipulator.h"
+#include "open_manipulator_libs/arm_manipulator.h"
 #include "open_manipulator_msgs/SetJointPosition.h"
 #include "open_manipulator_msgs/SetKinematicsPose.h"
 #include "open_manipulator_msgs/SetDrawingTrajectory.h"
@@ -40,13 +40,13 @@
 #include "open_manipulator_msgs/GetKinematicsPose.h"
 #include "open_manipulator_msgs/OpenManipulatorState.h"
 
-namespace open_manipulator_controller
+namespace arm_manipulator_controller
 {
-class OpenManipulatorController
+class ArmManipulatorController
 {
  public:
-  OpenManipulatorController(std::string usb_port, std::string baud_rate);
-  ~OpenManipulatorController();
+  ArmManipulatorController(std::string usb_port, std::string baud_rate);
+  ~ArmManipulatorController();
 
   // update
   void publishCallback(const ros::TimerEvent&);
@@ -77,7 +77,8 @@ class OpenManipulatorController
   bool timer_thread_state_;
 
   // Robotis_manipulator related 
-  OpenManipulator open_manipulator_;
+  ArmManipulator right_manipulator_;
+  ArmManipulator left_manipulator_;
 
   /*****************************************************************************
   ** Init Functions
@@ -89,10 +90,14 @@ class OpenManipulatorController
   /*****************************************************************************
   ** ROS Publishers, Callback Functions and Relevant Functions
   *****************************************************************************/
-  ros::Publisher open_manipulator_states_pub_;
-  std::vector<ros::Publisher> open_manipulator_kinematics_pose_pub_;
-  ros::Publisher open_manipulator_joint_states_pub_;
-  std::vector<ros::Publisher> gazebo_goal_joint_position_pub_;
+  ros::Publisher right_arm_manipulator_states_pub_;
+  ros::Publisher left_arm_manipulator_states_pub_;
+  std::vector<ros::Publisher> right_arm_manipulator_kinematics_pose_pub_;
+  std::vector<ros::Publisher> left_arm_manipulator_kinematics_pose_pub_;
+  ros::Publisher right_arm_manipulator_joint_states_pub_;
+  ros::Publisher left_arm_manipulator_joint_states_pub_;
+  std::vector<ros::Publisher> gazebo_right_arm_goal_joint_position_pub_;
+  std::vector<ros::Publisher> gazebo_left_arm_goal_joint_position_pub_;
 
   void publishOpenManipulatorStates();
   void publishKinematicsPose();
@@ -102,7 +107,7 @@ class OpenManipulatorController
   /*****************************************************************************
   ** ROS Subscribers and Callback Functions
   *****************************************************************************/
-  ros::Subscriber open_manipulator_option_sub_;
+  ros::Subscriber arm_manipulator_option_sub_;
 
   void openManipulatorOptionCallback(const std_msgs::String::ConstPtr &msg);
 
