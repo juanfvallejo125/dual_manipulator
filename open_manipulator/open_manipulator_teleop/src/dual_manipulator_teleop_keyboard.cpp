@@ -86,15 +86,15 @@ void DualManipulatorTeleop::initSubscriber()
 
     sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[0]+"controller/command", 10, &DualManipulatorTeleop::J1_L_commandCallback, this );
     left_gazebo_joints_subs.push_back(sub);
-    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[1]+"controller/command", 10, &DualManipulatorTeleop::J1_L_commandCallback, this );
+    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[1]+"controller/command", 10, &DualManipulatorTeleop::J2_L_commandCallback, this );
     left_gazebo_joints_subs.push_back(sub);
-    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[2]+"controller/command", 10, &DualManipulatorTeleop::J1_L_commandCallback, this );
+    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[2]+"controller/command", 10, &DualManipulatorTeleop::J3_L_commandCallback, this );
     left_gazebo_joints_subs.push_back(sub);
-    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[3]+"controller/command", 10, &DualManipulatorTeleop::J1_L_commandCallback, this );
+    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[3]+"controller/command", 10, &DualManipulatorTeleop::J4_L_commandCallback, this );
     left_gazebo_joints_subs.push_back(sub);
-    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[4]+"controller/command", 10, &DualManipulatorTeleop::J1_L_commandCallback, this );
+    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[4]+"controller/command", 10, &DualManipulatorTeleop::wristJ1_L_commandCallback, this );
     left_gazebo_joints_subs.push_back(sub);
-    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[5]+"controller/command", 10, &DualManipulatorTeleop::J1_L_commandCallback, this );
+    sub = node_handle_.subscribe("EffortJointInterface"+left_joint_names[5]+"controller/command", 10, &DualManipulatorTeleop::wristJ2_L_commandCallback, this );
     left_gazebo_joints_subs.push_back(sub);
   }
   //kinematics_pose_sub_ = node_handle_.subscribe("kinematics_pose", 10, &DualManipulatorTeleop::kinematicsPoseCallback, this);
@@ -465,7 +465,7 @@ void DualManipulatorTeleop::setGoal(char ch)
   }
   else if (ch == '8' || ch == '8')
   {
-    printf("input : 8 \tincrease(++) right arm joint 3 angle\n");
+    printf("input : 8 \tincrease(++) right arm joint 4 angle\n");
     std::vector<std::string> joint_name;
     joint_name.push_back("_J1_R");
     joint_name.push_back("_J2_R_"); 
@@ -555,7 +555,7 @@ void DualManipulatorTeleop::setGoal(char ch)
   }
   else if (ch == 'p' || ch == 'P')
   {
-    printf("input : p \tdecrease(--) right arm joint 5 angle\n");
+    printf("input : p \tdecrease(--) right arm joint 6 angle\n");
     std::vector<std::string> joint_name;
     joint_name.push_back("_J1_R"); 
     joint_name.push_back("_J2_R_"); 
@@ -569,6 +569,222 @@ void DualManipulatorTeleop::setGoal(char ch)
     joint_name.push_back("_J4_L");
     joint_name.push_back("_wristJ1_L");
     joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if(ch == 'g' || ch == 'G')
+  {
+    printf("input : g \tincrease(++) left arm joint 1 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_");
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R");
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L"); goalJoint.at(6) = JOINT_DELTA;
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'b' || ch == 'B')
+  {
+    printf("input : b \tdecrease(--) left arm joint 1 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_");
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R");
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L"); goalJoint.at(6) = -JOINT_DELTA;
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'h' || ch == 'H')
+  {
+    printf("input : h \tincrease(++) left arm joint 2 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R");
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R");
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_"); goalJoint.at(7) = JOINT_DELTA;
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'n' || ch == 'N')
+  {
+    printf("input : n \tdecrease(--) left arm joint 2 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R");
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_"); goalJoint.at(7) = -JOINT_DELTA;
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'j' || ch == 'J')
+  {
+    printf("input : j \tincrease(++) left arm joint 3 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R");
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R"); 
+    joint_name.push_back("_J4_R");
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L"); goalJoint.at(8) = JOINT_DELTA;
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'm' || ch == 'M')
+  {
+    printf("input : m \tdecrease(--) left arm joint 3 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R"); 
+    joint_name.push_back("_J4_R");
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L"); goalJoint.at(8) = -JOINT_DELTA;
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'k' || ch == 'K')
+  {
+    printf("input : k \tincrease(++) left arm joint 4 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R");
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R"); 
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L"); goalJoint.at(9) = JOINT_DELTA;
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == ',' || ch == ',')
+  {
+    printf("input : , \tdecrease(--) left arm joint 4 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R"); 
+    joint_name.push_back("_J4_R"); 
+    joint_name.push_back("_wristJ1_R");
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L"); goalJoint.at(9) = -JOINT_DELTA;
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == 'l' || ch == 'L')
+  {
+    printf("input : l \tincrease(++) left arm joint 5 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R");
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R"); 
+    joint_name.push_back("_wristJ1_R"); 
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L"); goalJoint.at(10) = JOINT_DELTA;
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == '.' || ch == '.')
+  {
+    printf("input : . \tdecrease(--) left arm joint 5 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R"); 
+    joint_name.push_back("_J4_R"); 
+    joint_name.push_back("_wristJ1_R"); 
+    joint_name.push_back("_wristJ2_R");
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L"); goalJoint.at(10) = -JOINT_DELTA;
+    joint_name.push_back("_wristJ2_L");
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == ';' || ch == ';')
+  {
+    printf("input : ; \tincrease(++) left arm joint 6 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R");
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R");
+    joint_name.push_back("_J4_R"); 
+    joint_name.push_back("_wristJ1_R"); 
+    joint_name.push_back("_wristJ2_R"); 
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L"); goalJoint.at(11) = JOINT_DELTA;
+    setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == '/' || ch == '/')
+  {
+    printf("input : / \tdecrease(--) left arm joint 6 angle\n");
+    std::vector<std::string> joint_name;
+    joint_name.push_back("_J1_R"); 
+    joint_name.push_back("_J2_R_"); 
+    joint_name.push_back("_J3_R"); 
+    joint_name.push_back("_J4_R"); 
+    joint_name.push_back("_wristJ1_R"); 
+    joint_name.push_back("_wristJ2_R"); 
+    joint_name.push_back("_J1_L");
+    joint_name.push_back("_J2_L_");
+    joint_name.push_back("_J3_L");
+    joint_name.push_back("_J4_L");
+    joint_name.push_back("_wristJ1_L");
+    joint_name.push_back("_wristJ2_L"); goalJoint.at(11) = -JOINT_DELTA;
     setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
   }
   // else if (ch == 'g' || ch == 'G')
