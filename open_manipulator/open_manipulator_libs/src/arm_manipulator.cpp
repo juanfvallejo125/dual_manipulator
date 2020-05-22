@@ -36,6 +36,15 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
   /*****************************************************************************
   ** Initialize Manipulator Parameter
   *****************************************************************************/
+  // Set joint actuator id
+  // Right arm uses 11 - 16, Left arm uses 21 - 26
+  int id_offset = 0;
+  if(side == "R"){
+    id_offset = 10;
+  }else{
+    id_offset = 20;
+  }
+
   addWorld("base",   // world name
           "_J1_"+side); // child name
 
@@ -45,7 +54,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(0.012, 0.0, 0.017),                // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Z_AXIS,    // axis of rotation
-            11,        // actuator id
+            id_offset+1,        // actuator id
             M_PI,      // max joint limit (3.14 rad)
             -M_PI,     // min joint limit (-3.14 rad)
             1.0,       // coefficient
@@ -62,7 +71,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(0.0, 0.0, 0.0595),                // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
-            12,        // actuator id
+            id_offset+2,        // actuator id
             M_PI_2,    // max joint limit (1.67 rad)
             -2.05,     // min joint limit (-2.05 rad)
             1.0,       // coefficient
@@ -79,7 +88,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(0.024, 0.0, 0.128),               // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
-            13,        // actuator id
+            id_offset+3,        // actuator id
             1.53,      // max joint limit (1.53 rad)
             -M_PI_2,   // min joint limit (-1.67 rad)
             1.0,       // coefficient
@@ -96,7 +105,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
-            14,        // actuator id
+            id_offset+4,        // actuator id
             2.0,       // max joint limit (2.0 rad)
             -1.8,      // min joint limit (-1.8 rad)
             1.0,       // coefficient
@@ -113,7 +122,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
-            14,        // actuator id
+            id_offset+5,        // actuator id
             2.0,       // max joint limit (2.0 rad)
             -1.8,      // min joint limit (-1.8 rad)
             1.0,       // coefficient
@@ -129,7 +138,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
-            14,        // actuator id
+            id_offset+6,        // actuator id
             2.0,       // max joint limit (2.0 rad)
             -1.8,      // min joint limit (-1.8 rad)
             1.0,       // coefficient
@@ -162,7 +171,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
   *****************************************************************************/
   // Add in later
   //kinematics_ = new kinematics::SolverCustomizedforOMChain();
-//  kinematics_ = new kinematics::SolverUsingCRAndSRPositionOnlyJacobian();
+  //kinematics_ = new kinematics::SolverUsingCRAndSRPositionOnlyJacobian();
   //addKinematics(kinematics_);
 
   if(using_actual_robot_state)
@@ -177,14 +186,6 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
     STRING dxl_comm_arg[2] = {usb_port, baud_rate};
     void *p_dxl_comm_arg = &dxl_comm_arg;
 
-    // Set joint actuator id
-    // Right arm uses 11 - 16, Left arm uses 21 - 26
-    int id_offset = 0;
-    if(side == "R"){
-      id_offset = 10;
-    }else{
-      id_offset = 20;
-    }
     std::vector<uint8_t> jointDxlId;
     jointDxlId.push_back(id_offset+1);
     jointDxlId.push_back(id_offset+2);
