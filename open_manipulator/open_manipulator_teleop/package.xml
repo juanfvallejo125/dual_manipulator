@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>open_manipulator_teleop</name>
+  <name>dual_manipulator_teleop</name>
   <version>2.0.1</version>
   <description>
-    Provides teleoperation using keyboard for OpenManipulator.
+    Provides teleoperation using keyboard for the Dual Manipulator.
   </description>
   <license>Apache 2.0</license>
   <author email="thlim@robotis.com">Darby Lim</author>

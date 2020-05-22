@@ -16,6 +16,8 @@
 
 /* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */
 
+/* Modified by Juan Vallejo */
+
 #ifndef OPEN_MANIPULATOR_TELEOP_KEYBOARD_H_
 #define OPEN_MANIPULATOR_TELEOP_KEYBOARD_H_
 
@@ -23,20 +25,21 @@
 
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64.h>
 
 #include "open_manipulator_msgs/SetJointPosition.h"
 #include "open_manipulator_msgs/SetKinematicsPose.h"
 
-#define NUM_OF_JOINT 4
+#define NUM_OF_JOINT 6 //Modified to 6 joints for one arm
 #define DELTA 0.01
 #define JOINT_DELTA 0.05
 #define PATH_TIME 0.5
 
-class OpenManipulatorTeleop
+class DualManipulatorTeleop
 {
  public:
-  OpenManipulatorTeleop();
-  ~OpenManipulatorTeleop();
+  DualManipulatorTeleop();
+  ~DualManipulatorTeleop();
 
   // update
   void printText();
@@ -52,8 +55,14 @@ class OpenManipulatorTeleop
   /*****************************************************************************
   ** Variables
   *****************************************************************************/
-  std::vector<double> present_joint_angle_;
+  std::vector<double> right_arm_present_joint_angle_;
+  std::vector<double> left_arm_present_joint_angle_;
   std::vector<double> present_kinematic_position_;
+
+  /*****************************************************************************
+  ** ROS Parameters
+  *****************************************************************************/
+  bool using_platform;
 
   /*****************************************************************************
   ** Init Functions
@@ -64,11 +73,30 @@ class OpenManipulatorTeleop
   /*****************************************************************************
   ** ROS Subscribers, Callback Functions and Relevant Functions
   *****************************************************************************/
-  ros::Subscriber joint_states_sub_;
-  ros::Subscriber kinematics_pose_sub_;
+  ros::Subscriber right_joint_states_sub_;
+  ros::Subscriber left_joint_states_sub_;
+  ros::Subscriber right_kinematics_pose_sub_;
+  ros::Subscriber left_kinematics_pose_sub_;
+
+  std::vector<ros::Subscriber> right_gazebo_joints_subs;
+  std::vector<ros::Subscriber> left_gazebo_joints_subs;
 
   void jointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void kinematicsPoseCallback(const open_manipulator_msgs::KinematicsPose::ConstPtr &msg);
+
+  void J1_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void J2_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void J3_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void J4_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void wristJ1_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void wristJ2_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+
+  void J1_L_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void J2_L_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void J3_L_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void J4_L_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void wristJ1_L_commandCallback(const std_msgs::Float64::ConstPtr &msg);
+  void wristJ2_L_commandCallback(const std_msgs::Float64::ConstPtr &msg);
 
   /*****************************************************************************
   ** ROS Clients and Callback Functions

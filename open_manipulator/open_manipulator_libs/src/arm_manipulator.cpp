@@ -37,11 +37,11 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
   ** Initialize Manipulator Parameter
   *****************************************************************************/
   addWorld("base",   // world name
-          "J1_"+side); // child name
+          "_J1_"+side); // child name
 
-  addJoint("J1_"+side,  // my name
+  addJoint("_J1_"+side,  // my name
            "base",   // parent name
-           "J2_"+side,  // child name
+           "_J2_"+side,  // child name
             math::vector3(0.012, 0.0, 0.017),                // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Z_AXIS,    // axis of rotation
@@ -56,9 +56,9 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(-3.0184870e-04, 5.4043684e-04, 0.018 + 2.9433464e-02)   // COM
             );
 
-  addJoint("J2_"+side,  // my name
-            "J1_"+side,  // parent name
-            "J3_"+side,  // child name
+  addJoint("_J2_"+side,  // my name
+            "_J1_"+side,  // parent name
+            "_J3_"+side,  // child name
             math::vector3(0.0, 0.0, 0.0595),                // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -73,9 +73,9 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(1.0308393e-02, 3.7743363e-04, 1.0170197e-01)            // COM
             );
 
-  addJoint("J3_"+side,  // my name
-            "J2_"+side,  // parent name
-            "J4_"+side,  // child name
+  addJoint("_J3_"+side,  // my name
+            "_J2_"+side,  // parent name
+            "_J4_"+side,  // child name
             math::vector3(0.024, 0.0, 0.128),               // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -90,9 +90,9 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(9.0909590e-02, 3.8929816e-04, 2.2413279e-04)            // COM
             );
 
-  addJoint("J4_"+side,  // my name
-            "J3_"+side,  // parent name
-            "wristJ1_"+side, // child name
+  addJoint("_J4_"+side,  // my name
+            "_J3_"+side,  // parent name
+            "_wristJ1_"+side, // child name
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -107,9 +107,9 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
             );
 
-  addJoint("wristJ1_"+side,  // my name
-            "J4_"+side,  // parent name
-            "wristJ2_"+side, // child name
+  addJoint("_wristJ1_"+side,  // my name
+            "_J4_"+side,  // parent name
+            "_wristJ2_"+side, // child name
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -123,9 +123,9 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
                                 9.3127351e-05),                                   // inertial tensor
             math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
             );
-  addJoint("wristJ2_"+side,  // my name
-            "wristJ1_"+side,  // parent name
-            "gripper_"+side, // child name
+  addJoint("_wristJ2_"+side,  // my name
+            "_wristJ1_"+side,  // parent name
+            "_gripper_"+side, // child name
             math::vector3(0.124, 0.0, 0.0),                 // relative position
             math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
             Y_AXIS,    // axis of rotation
@@ -140,20 +140,20 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
             math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
             );
 
-  addTool("gripper_"+side,  // my name
-          "wristJ2_"+side,   // parent name
-          math::vector3(0.126, 0.0, 0.0),                 // relative position
-          math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
-          15,         // actuator id
-          0.010,      // max gripper limit (0.01 m)
-          -0.010,     // min gripper limit (-0.01 m)
-          -0.015,     // Change unit from `meter` to `radian`
-          3.2218127e-02 * 2,                                                    // mass
-          math::inertiaMatrix(9.5568826e-06, 2.8424644e-06, -3.2829197e-10,
-                              2.2552871e-05, -3.1463634e-10,
-                              1.7605306e-05),                                   // inertial tensor
-          math::vector3(0.028 + 8.3720668e-03, 0.0246, -4.2836895e-07)          // COM
-          );
+  // addTool("_gripper_"+side,  // my name
+  //         "_wristJ2_"+side,   // parent name
+  //         math::vector3(0.126, 0.0, 0.0),                 // relative position
+  //         math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
+  //         15,         // actuator id
+  //         0.010,      // max gripper limit (0.01 m)
+  //         -0.010,     // min gripper limit (-0.01 m)
+  //         -0.015,     // Change unit from `meter` to `radian`
+  //         3.2218127e-02 * 2,                                                    // mass
+  //         math::inertiaMatrix(9.5568826e-06, 2.8424644e-06, -3.2829197e-10,
+  //                             2.2552871e-05, -3.1463634e-10,
+  //                             1.7605306e-05),                                   // inertial tensor
+  //         math::vector3(0.028 + 8.3720668e-03, 0.0246, -4.2836895e-07)          // COM
+  //         );
  
 
         
@@ -261,5 +261,5 @@ void ArmManipulator::processArmManipulator(double present_time)
   if(goal_tool_value.size() != 0) sendAllToolActuatorValue(goal_tool_value);
 
   // Perception (fk)
-  solveForwardKinematics();
+  //solveForwardKinematics();
 }

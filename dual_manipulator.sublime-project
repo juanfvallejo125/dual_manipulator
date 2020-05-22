@@ -1,0 +1,36 @@
+{
+	"ecc_flags_sources":
+	[
+		{
+			"file": "CMakeLists.txt",
+			"prefix_paths":
+			[
+				"/opt/ros/melodic",
+				"~/catkin_ws/devel",
+				"~catkin_ws/src"
+			]
+		}
+	],
+	"folders":
+	[
+		{
+			"path": "."
+		}
+	],
+	"settings":
+	{
+		"ecc_flags_sources":
+		[
+			{
+				"file": "CMakeLists.txt",
+				"prefix_paths":
+				[
+					"/opt/ros/melodic",
+					"~/catkin_ws/devel",
+					"~catkin_ws/src",
+					"~/Documents/catkin_ws/devel"
+				]
+			}
+		]
+	}
+}

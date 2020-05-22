@@ -113,7 +113,7 @@ void RobotisManipulator::addDynamics(Dynamics *dynamics)
 void RobotisManipulator::addJointActuator(Name actuator_name, JointActuator *joint_actuator, std::vector<uint8_t> id_array, const void *arg)
 {
   joint_actuator_.insert(std::make_pair(actuator_name, joint_actuator));
-  if(joint_actuator_.find(actuator_name) != joint_actuator_.end())
+  if(joint_actuator_.find(actuator_name) != joint_actuator_.end())// Problem
   {
     joint_actuator_.at(actuator_name)->init(id_array, arg);
   }

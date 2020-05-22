@@ -34,7 +34,7 @@ ArmManipulatorController::ArmManipulatorController(std::string usb_port, std::st
   /************************************************************
   ** Initialize variables
   ************************************************************/
-  right_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, "R");
+  right_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, "R");// std::map.at() fails somewhere in here
   left_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, "L");
 
   if (using_platform_ == true) log::info("Succeeded to init " + priv_node_handle_.getNamespace());
@@ -52,7 +52,7 @@ ArmManipulatorController::~ArmManipulatorController()
 {
   timer_thread_state_ = false;
   pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete
-  log::info("Shutdown OpenManipulator Controller");
+  log::info("Shutdown ArmManipulator Controller");
   right_manipulator_.disableAllActuator();
   left_manipulator_.disableAllActuator();
   ros::shutdown();
@@ -359,7 +359,7 @@ bool ArmManipulatorController::goalJointSpacePathFromPresentCallback(open_manipu
   for (int i = 0; i < req.joint_position.joint_name.size()/2.0; i ++)
     right_target_angle.push_back(req.joint_position.position.at(i));
 
-  for (int i = i < req.joint_position.joint_name.size()/2.0; i < req.joint_position.joint_name.size(); i ++)
+  for (int i = req.joint_position.joint_name.size()/2.0; i < req.joint_position.joint_name.size(); i ++)
     left_target_angle.push_back(req.joint_position.position.at(i));
 
   if (!(right_manipulator_.makeJointTrajectoryFromPresentPosition(right_target_angle, req.path_time)&&left_manipulator_.makeJointTrajectoryFromPresentPosition(left_target_angle, req.path_time)))
@@ -619,13 +619,13 @@ void ArmManipulatorController::publishJointStates()
 
   auto right_joints_name = right_manipulator_.getManipulator()->getAllActiveJointComponentName();
   auto left_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();
-  auto right_tool_name = right_manipulator_.getManipulator()->getAllToolComponentName();
-  auto left_tool_name = left_manipulator_.getManipulator()->getAllToolComponentName();
+  // auto right_tool_name = right_manipulator_.getManipulator()->getAllToolComponentName();
+  // auto left_tool_name = left_manipulator_.getManipulator()->getAllToolComponentName();
 
   auto right_joint_value = right_manipulator_.getAllActiveJointValue();
   auto left_joint_value = left_manipulator_.getAllActiveJointValue();
-  auto right_tool_value = right_manipulator_.getAllToolValue();
-  auto left_tool_value = left_manipulator_.getAllToolValue();
+  // auto right_tool_value = right_manipulator_.getAllToolValue();
+  // auto left_tool_value = left_manipulator_.getAllToolValue();
 
   for (uint8_t i = 0; i < right_joints_name.size(); i ++)
   {
@@ -645,23 +645,23 @@ void ArmManipulatorController::publishJointStates()
     left_msg.effort.push_back(left_joint_value.at(i).effort);
   }
 
-  for (uint8_t i = 0; i < right_tool_name.size(); i ++)
-  {
-    right_msg.name.push_back(right_tool_name.at(i));
+  // for (uint8_t i = 0; i < right_tool_name.size(); i ++)
+  // {
+  //   right_msg.name.push_back(right_tool_name.at(i));
 
-    right_msg.position.push_back(right_tool_value.at(i).position);
-    right_msg.velocity.push_back(0.0f);
-    right_msg.effort.push_back(0.0f);
-  }
+  //   right_msg.position.push_back(right_tool_value.at(i).position);
+  //   right_msg.velocity.push_back(0.0f);
+  //   right_msg.effort.push_back(0.0f);
+  // }
 
-  for (uint8_t i = 0; i < left_tool_name.size(); i ++)
-  {
-    left_msg.name.push_back(left_tool_name.at(i));
+  // for (uint8_t i = 0; i < left_tool_name.size(); i ++)
+  // {
+  //   left_msg.name.push_back(left_tool_name.at(i));
 
-    left_msg.position.push_back(left_tool_value.at(i).position);
-    left_msg.velocity.push_back(0.0f);
-    left_msg.effort.push_back(0.0f);
-  }
+  //   left_msg.position.push_back(left_tool_value.at(i).position);
+  //   left_msg.velocity.push_back(0.0f);
+  //   left_msg.effort.push_back(0.0f);
+  // }
 
   right_arm_manipulator_joint_states_pub_.publish(right_msg);
   left_arm_manipulator_joint_states_pub_.publish(left_msg);
