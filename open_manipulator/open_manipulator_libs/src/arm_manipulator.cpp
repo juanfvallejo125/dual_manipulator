@@ -74,7 +74,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
               math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
               Y_AXIS,    // axis of rotation
               id_offset+2,        // actuator id
-              0,    // max joint limit (1.67 rad)
+              0.1,    // max joint limit (1.67 rad)
               -M_PI,     // min joint limit (-2.05 rad)
               1.0,       // coefficient
               1.3850917e-01,                                                        // mass

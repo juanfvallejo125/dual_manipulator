@@ -34,7 +34,8 @@ DualManipulatorTeleop::DualManipulatorTeleop()
   /************************************************************
   ** Initialize ROS parameters
   ************************************************************/
-  priv_node_handle_.getParam("using_platform", using_platform);
+  priv_node_handle_.getParam("/iiwa/arm_manipulator_controller/using_platform", using_platform);
+  std::cout << "Using platform teleop_keyboard: " << using_platform << std::endl;
 
   /************************************************************
   ** Initialize ROS Subscribers and Clients
@@ -64,8 +65,8 @@ void DualManipulatorTeleop::initClient()
 void DualManipulatorTeleop::initSubscriber()
 {
   if(using_platform){
-    right_joint_states_sub_ = node_handle_.subscribe("right_arm_joint_states", 10, &DualManipulatorTeleop::jointStatesCallback, this);
-    left_joint_states_sub_ = node_handle_.subscribe("left_arm_joint_states", 10, &DualManipulatorTeleop::jointStatesCallback, this);
+    right_joint_states_sub_ = node_handle_.subscribe("/iiwa/right_arm_joint_states", 10, &DualManipulatorTeleop::jointStatesCallback, this);
+    // left_joint_states_sub_ = node_handle_.subscribe("left_arm_joint_states", 10, &DualManipulatorTeleop::jointStatesCallback, this);
   }else{
     std::string right_joint_names[NUM_OF_JOINT] = {"_J1_R_", "_J2_R_", "_J3_R_", "_J4_R_", "_wristJ1_R_", "_wristJ2_R_"};
     std::string left_joint_names[NUM_OF_JOINT] = {"_J1_L_", "_J2_L_", "_J3_L_", "_J4_L_", "_wristJ1_L_", "_wristJ2_L_"};
@@ -104,15 +105,15 @@ void DualManipulatorTeleop::jointStatesCallback(const sensor_msgs::JointState::C
 {
   std::vector<double> temp_angle;
   temp_angle.resize(NUM_OF_JOINT);
-  for (std::vector<int>::size_type i = 0; i < msg->name.size(); i ++)
-  {
-    if (!msg->name.at(i).compare("joint1"))  temp_angle.at(0) = (msg->position.at(i));
-    else if (!msg->name.at(i).compare("joint2"))  temp_angle.at(1) = (msg->position.at(i));
-    else if (!msg->name.at(i).compare("joint3"))  temp_angle.at(2) = (msg->position.at(i));
-    else if (!msg->name.at(i).compare("joint4"))  temp_angle.at(3) = (msg->position.at(i));
+
+  for (std::vector<int>::size_type i = 0; i < msg->name.size(); i ++){
+    if (!msg->name.at(i).compare("_J1_R"))  temp_angle.at(0) = (msg->position.at(i));
+    else if (!msg->name.at(i).compare("_J2_R"))  temp_angle.at(1) = (msg->position.at(i));
+    else if (!msg->name.at(i).compare("_J3_R"))  temp_angle.at(2) = (msg->position.at(i));
+    else if (!msg->name.at(i).compare("_J4_R"))  temp_angle.at(3) = (msg->position.at(i));
   }
   right_arm_present_joint_angle_ = temp_angle;
-  // Handle the left arm as well
+  // Handle the left arm as well later...
 }
 
 void DualManipulatorTeleop::kinematicsPoseCallback(const open_manipulator_msgs::KinematicsPose::ConstPtr &msg)// Edit for use with Dynamixels
