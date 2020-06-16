@@ -33,7 +33,7 @@
 #define NUM_OF_JOINT 6 //Modified to 6 joints for one arm
 #define DELTA 0.01
 #define JOINT_DELTA 0.05
-#define PATH_TIME 0.5
+#define PATH_TIME 0.1
 
 class DualManipulatorTeleop
 {

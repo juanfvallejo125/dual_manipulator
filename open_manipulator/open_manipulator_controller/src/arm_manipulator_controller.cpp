@@ -361,8 +361,6 @@ bool ArmManipulatorController::goalJointSpacePathFromPresentCallback(open_manipu
 
   for (int i = req.joint_position.joint_name.size()/2.0; i < req.joint_position.joint_name.size(); i ++)
     left_target_angle.push_back(req.joint_position.position.at(i));
-
-  // REMOVE AFTER DEBUGGING
   
 
   if (!(right_manipulator_.makeJointTrajectoryFromPresentPosition(right_target_angle, req.path_time)))
