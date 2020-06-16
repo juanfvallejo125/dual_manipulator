@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
 * Copyright 2018 ROBOTIS CO., LTD.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +35,7 @@ ArmManipulatorController::ArmManipulatorController(std::string usb_port, std::st
   ** Initialize variables
   ************************************************************/
   right_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, "R");// std::map.at() fails somewhere in here
-  left_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, "L");
+  // left_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, " ");
 
   if (using_platform_ == true) log::info("Succeeded to init " + priv_node_handle_.getNamespace());
   else if (using_platform_ == false) log::info("Ready to simulate " +  priv_node_handle_.getNamespace() + " on Gazebo");
@@ -54,7 +54,7 @@ ArmManipulatorController::~ArmManipulatorController()
   pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete
   log::info("Shutdown ArmManipulator Controller");
   right_manipulator_.disableAllActuator();
-  left_manipulator_.disableAllActuator();
+  // left_manipulator_.disableAllActuator();
   ros::shutdown();
 }
 
@@ -159,11 +159,11 @@ void ArmManipulatorController::initPublisher()
   else
   {
     auto gazebo_right_arm_joints_name = right_manipulator_.getManipulator()->getAllActiveJointComponentName();
-    auto gazebo_left_arm_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();
+    // auto gazebo_left_arm_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();
     gazebo_right_arm_joints_name.reserve(gazebo_right_arm_joints_name.size() + right_om_tools_name.size());
-    gazebo_left_arm_joints_name.reserve(gazebo_left_arm_joints_name.size() + left_om_tools_name.size());
+    // gazebo_left_arm_joints_name.reserve(gazebo_left_arm_joints_name.size() + left_om_tools_name.size());
     gazebo_right_arm_joints_name.insert(gazebo_right_arm_joints_name.end(), right_om_tools_name.begin(), right_om_tools_name.end());
-    gazebo_left_arm_joints_name.insert(gazebo_left_arm_joints_name.end(), left_om_tools_name.begin(), left_om_tools_name.end());
+    // gazebo_left_arm_joints_name.insert(gazebo_left_arm_joints_name.end(), left_om_tools_name.begin(), left_om_tools_name.end());
 
     for (auto const& name:gazebo_right_arm_joints_name)
     {
@@ -171,12 +171,12 @@ void ArmManipulatorController::initPublisher()
       pb = node_handle_.advertise<std_msgs::Float64>("EffortJointInterface" + name + "_controller/command", 10);
       gazebo_right_arm_goal_joint_position_pub_.push_back(pb);
     }
-    for (auto const& name:gazebo_left_arm_joints_name)
-    {
-      ros::Publisher pb;
-      pb = node_handle_.advertise<std_msgs::Float64>("EffortJointInterface" + name + "_controller/command", 10);
-      gazebo_left_arm_goal_joint_position_pub_.push_back(pb);
-    }
+    // for (auto const& name:gazebo_left_arm_joints_name)
+    // {
+    //   ros::Publisher pb;
+    //   pb = node_handle_.advertise<std_msgs::Float64>("EffortJointInterface" + name + "_controller/command", 10);
+    //   gazebo_left_arm_goal_joint_position_pub_.push_back(pb);
+    // }
   }
 }
 void ArmManipulatorController::initSubscriber()
@@ -214,7 +214,7 @@ void ArmManipulatorController::openManipulatorOptionCallback(const std_msgs::Str
 {
   if (msg->data == "print_open_manipulator_setting")
     right_manipulator_.printManipulatorSetting();
-    left_manipulator_.printManipulatorSetting();
+    // left_manipulator_.printManipulatorSetting();
 }
 
 /*****************************************************************************
@@ -362,7 +362,10 @@ bool ArmManipulatorController::goalJointSpacePathFromPresentCallback(open_manipu
   for (int i = req.joint_position.joint_name.size()/2.0; i < req.joint_position.joint_name.size(); i ++)
     left_target_angle.push_back(req.joint_position.position.at(i));
 
-  if (!(right_manipulator_.makeJointTrajectoryFromPresentPosition(right_target_angle, req.path_time)&&left_manipulator_.makeJointTrajectoryFromPresentPosition(left_target_angle, req.path_time)))
+  // REMOVE AFTER DEBUGGING
+  
+
+  if (!(right_manipulator_.makeJointTrajectoryFromPresentPosition(right_target_angle, req.path_time)))
     res.is_planned = false;
   else
     res.is_planned = true;
@@ -450,7 +453,7 @@ bool ArmManipulatorController::setActuatorStateCallback(open_manipulator_msgs::S
     timer_thread_state_ = false;
     pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete
     right_manipulator_.enableAllActuator();
-    left_manipulator_.enableAllActuator();
+    // left_manipulator_.enableAllActuator();
     startTimerThread();
   }
   else // disable actuators
@@ -459,7 +462,7 @@ bool ArmManipulatorController::setActuatorStateCallback(open_manipulator_msgs::S
     timer_thread_state_ = false;
     pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete
     right_manipulator_.disableAllActuator();
-    left_manipulator_.disableAllActuator();
+    // left_manipulator_.disableAllActuator();
     startTimerThread();
   }
 
@@ -542,7 +545,7 @@ bool ArmManipulatorController::setActuatorStateCallback(open_manipulator_msgs::S
 void ArmManipulatorController::process(double time)
 {
   right_manipulator_.processArmManipulator(time);
-  left_manipulator_.processArmManipulator(time);
+  // left_manipulator_.processArmManipulator(time);
 }
 
 /********************************************************************************
@@ -573,19 +576,19 @@ void ArmManipulatorController::publishOpenManipulatorStates()
 
   right_arm_manipulator_states_pub_.publish(msg);
 
-  if (left_manipulator_.getMovingState())
-    msg.open_manipulator_moving_state = msg.IS_MOVING;
-  else
-    msg.open_manipulator_moving_state = msg.STOPPED;
+//   if (left_manipulator_.getMovingState())
+//     msg.open_manipulator_moving_state = msg.IS_MOVING;
+//   else
+//     msg.open_manipulator_moving_state = msg.STOPPED;
 
 
-  if (left_manipulator_.getActuatorEnabledState(JOINT_DYNAMIXEL))
-    msg.open_manipulator_actuator_state = msg.ACTUATOR_ENABLED;
-  else
-    msg.open_manipulator_actuator_state = msg.ACTUATOR_DISABLED;
+//   if (left_manipulator_.getActuatorEnabledState(JOINT_DYNAMIXEL))
+//     msg.open_manipulator_actuator_state = msg.ACTUATOR_ENABLED;
+//   else
+//     msg.open_manipulator_actuator_state = msg.ACTUATOR_DISABLED;
 
-  left_arm_manipulator_states_pub_.publish(msg);
-}
+//   left_arm_manipulator_states_pub_.publish(msg);
+// }
 
 // void ArmManipulatorController::publishKinematicsPose()
 // {
@@ -608,22 +611,21 @@ void ArmManipulatorController::publishOpenManipulatorStates()
 //     open_manipulator_kinematics_pose_pub_.at(index).publish(msg);
 //     index++;
 //   }
-// }
+}
 
-void ArmManipulatorController::publishJointStates()
-{
+void ArmManipulatorController::publishJointStates(){
   sensor_msgs::JointState right_msg;
   right_msg.header.stamp = ros::Time::now();
   sensor_msgs::JointState left_msg;
   left_msg.header.stamp = ros::Time::now();
 
   auto right_joints_name = right_manipulator_.getManipulator()->getAllActiveJointComponentName();
-  auto left_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();
+  // auto left_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();
   // auto right_tool_name = right_manipulator_.getManipulator()->getAllToolComponentName();
   // auto left_tool_name = left_manipulator_.getManipulator()->getAllToolComponentName();
 
   auto right_joint_value = right_manipulator_.getAllActiveJointValue();
-  auto left_joint_value = left_manipulator_.getAllActiveJointValue();
+  // auto left_joint_value = left_manipulator_.getAllActiveJointValue();
   // auto right_tool_value = right_manipulator_.getAllToolValue();
   // auto left_tool_value = left_manipulator_.getAllToolValue();
 
@@ -636,14 +638,14 @@ void ArmManipulatorController::publishJointStates()
     right_msg.effort.push_back(right_joint_value.at(i).effort);
   }
 
-  for (uint8_t i = 0; i < left_joints_name.size(); i ++)
-  {
-    left_msg.name.push_back(left_joints_name.at(i));
+  // for (uint8_t i = 0; i < left_joints_name.size(); i ++)
+  // {
+  //   left_msg.name.push_back(left_joints_name.at(i));
 
-    left_msg.position.push_back(left_joint_value.at(i).position);
-    left_msg.velocity.push_back(left_joint_value.at(i).velocity);
-    left_msg.effort.push_back(left_joint_value.at(i).effort);
-  }
+  //   left_msg.position.push_back(left_joint_value.at(i).position);
+  //   left_msg.velocity.push_back(left_joint_value.at(i).velocity);
+  //   left_msg.effort.push_back(left_joint_value.at(i).effort);
+  // }
 
   // for (uint8_t i = 0; i < right_tool_name.size(); i ++)
   // {
@@ -667,12 +669,11 @@ void ArmManipulatorController::publishJointStates()
   left_arm_manipulator_joint_states_pub_.publish(left_msg);
 }
 
-void ArmManipulatorController::publishGazeboCommand()
-{
+void ArmManipulatorController::publishGazeboCommand(){
   JointWaypoint right_joint_value = right_manipulator_.getAllActiveJointValue();
-  JointWaypoint left_joint_value = left_manipulator_.getAllActiveJointValue();
+  // JointWaypoint left_joint_value = left_manipulator_.getAllActiveJointValue();
   JointWaypoint right_tool_value = right_manipulator_.getAllToolValue();
-  JointWaypoint left_tool_value = left_manipulator_.getAllToolValue();
+  // JointWaypoint left_tool_value = left_manipulator_.getAllToolValue();
 
   for (uint8_t i = 0; i < right_joint_value.size(); i ++)
   {
@@ -681,21 +682,21 @@ void ArmManipulatorController::publishGazeboCommand()
 
     gazebo_right_arm_goal_joint_position_pub_.at(i).publish(msg);
 
-    msg.data = left_joint_value.at(i).position;
-    gazebo_left_arm_goal_joint_position_pub_.at(i).publish(msg);
+    // msg.data = left_joint_value.at(i).position;
+    // gazebo_left_arm_goal_joint_position_pub_.at(i).publish(msg);
   }
 
-  for (uint8_t i = 0; i < right_tool_value.size(); i ++)
-  {
-    std_msgs::Float64 msg;
-    msg.data = right_tool_value.at(i).position;
+  // for (uint8_t i = 0; i < right_tool_value.size(); i ++)
+  // {
+  //   std_msgs::Float64 msg;
+  //   msg.data = right_tool_value.at(i).position;
 
-    gazebo_right_arm_goal_joint_position_pub_.at(right_joint_value.size() + i).publish(msg);
+  //   gazebo_right_arm_goal_joint_position_pub_.at(right_joint_value.size() + i).publish(msg);
 
-    msg.data = left_tool_value.at(i).position;
+  //   msg.data = left_tool_value.at(i).position;
 
-    gazebo_left_arm_goal_joint_position_pub_.at(left_joint_value.size() + i).publish(msg);
-  }
+  //   gazebo_left_arm_goal_joint_position_pub_.at(left_joint_value.size() + i).publish(msg);
+  // }
 }
 
 /*****************************************************************************

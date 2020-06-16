@@ -22,6 +22,7 @@
 #include "dynamixel.h"
 #include "custom_trajectory.h"
 #include "kinematics.h"
+#include "iostream"
 
 #define CUSTOM_TRAJECTORY_SIZE 4
 #define CUSTOM_TRAJECTORY_LINE    "custom_trajectory_line"
