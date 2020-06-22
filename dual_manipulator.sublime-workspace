@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"using",
+				"using_platform\tbool using_platform"
+			],
+			[
+				"M_",
+				"M_PI_2"
+			],
+			[
 				"ps",
 				"push_back\tvoid push_back(value_type &&__x)"
 			],
@@ -72,37 +80,8 @@
 			"file": "open_manipulator/open_manipulator_libs/src/arm_manipulator.cpp",
 			"settings":
 			{
-				"buffer_size": 12244,
+				"buffer_size": 13003,
 				"encoding": "UTF-8 with BOM",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/arm_manipulator.h",
-			"settings":
-			{
-				"buffer_size": 2113,
-				"encoding": "UTF-8 with BOM",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "open_manipulator/open_manipulator_teleop/src/dual_manipulator_teleop_keyboard.cpp",
-			"settings":
-			{
-				"buffer_size": 34472,
-				"encoding": "UTF-8 with BOM",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"contents": "/*******************************************************************************\n* Copyright 2018 ROBOTIS CO., LTD.\n*\n* Licensed under the Apache License, Version 2.0 (the \"License\");\n* you may not use this file except in compliance with the License.\n* You may obtain a copy of the License at\n*\n*     http://www.apache.org/licenses/LICENSE-2.0\n*\n* Unless required by applicable law or agreed to in writing, software\n* distributed under the License is distributed on an \"AS IS\" BASIS,\n* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n* See the License for the specific language governing permissions and\n* limitations under the License.\n*******************************************************************************/\n\n/* Authors: Darby Lim, Hye-Jong KIM, Ryan Shim, Yong-Ho Na */\n\n#include \"open_manipulator_controller/arm_manipulator_controller.h\"\n\nusing namespace arm_manipulator_controller;\n\nArmManipulatorController::ArmManipulatorController(std::string usb_port, std::string baud_rate)\n: node_handle_(\"\"),\n  priv_node_handle_(\"~\"),\n  timer_thread_state_(false)\n{\n  /************************************************************\n  ** Initialize ROS parameters\n  ************************************************************/\n  control_period_       = priv_node_handle_.param<double>(\"control_period\", 0.010f);\n  using_platform_       = priv_node_handle_.param<bool>(\"using_platform\", false);\n\n  /************************************************************\n  ** Initialize variables\n  ************************************************************/\n  right_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, \"R\");// std::map.at() fails somewhere in here\n  left_manipulator_.initArmManipulator(using_platform_, usb_port, baud_rate, control_period_, \"L\");\n\n  if (using_platform_ == true) log::info(\"Succeeded to init \" + priv_node_handle_.getNamespace());\n  else if (using_platform_ == false) log::info(\"Ready to simulate \" +  priv_node_handle_.getNamespace() + \" on Gazebo\");\n\n  /************************************************************\n  ** Initialize ROS publishers, subscribers and servers\n  ************************************************************/\n  initPublisher();\n  initSubscriber();\n  initServer();\n}\n\nArmManipulatorController::~ArmManipulatorController()\n{\n  timer_thread_state_ = false;\n  pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete\n  log::info(\"Shutdown ArmManipulator Controller\");\n  right_manipulator_.disableAllActuator();\n  left_manipulator_.disableAllActuator();\n  ros::shutdown();\n}\n\nvoid ArmManipulatorController::startTimerThread()\n{\n  ////////////////////////////////////////////////////////////////////\n  /// Use this when you want to increase the priority of threads.\n  ////////////////////////////////////////////////////////////////////\n  //  pthread_attr_t attr_;\n  //  int error;\n  //  struct sched_param param;\n  //  pthread_attr_init(&attr_);\n\n  //  error = pthread_attr_setschedpolicy(&attr_, SCHED_RR);\n  //  if (error != 0)   log::error(\"pthread_attr_setschedpolicy error = \", (double)error);\n  //  error = pthread_attr_setinheritsched(&attr_, PTHREAD_EXPLICIT_SCHED);\n  //  if (error != 0)   log::error(\"pthread_attr_setinheritsched error = \", (double)error);\n\n  //  memset(&param, 0, sizeof(param));\n  //  param.sched_priority = 31;    // RT\n  //  error = pthread_attr_setschedparam(&attr_, &param);\n  //  if (error != 0)   log::error(\"pthread_attr_setschedparam error = \", (double)error);\n\n  //  if ((error = pthread_create(&this->timer_thread_, &attr_, this->timerThread, this)) != 0)\n  //  {\n  //    log::error(\"Creating timer thread failed!!\", (double)error);\n  //    exit(-1);\n  //  }\n  // timer_thread_state_ = true;\n  ////////////////////////////////////////////////////////////////////\n\n  int error;\n  if ((error = pthread_create(&this->timer_thread_, NULL, this->timerThread, this)) != 0)\n  {\n    log::error(\"Creating timer thread failed!!\", (double)error);\n    exit(-1);\n  }\n  timer_thread_state_ = true;\n}\n\nvoid *ArmManipulatorController::timerThread(void *param)\n{\n  ArmManipulatorController *controller = (ArmManipulatorController *) param;\n  static struct timespec next_time;\n  static struct timespec curr_time;\n\n  clock_gettime(CLOCK_MONOTONIC, &next_time);\n\n  while(controller->timer_thread_state_)\n  {\n    next_time.tv_sec += (next_time.tv_nsec + ((int)(controller->getControlPeriod() * 1000)) * 1000000) / 1000000000;\n    next_time.tv_nsec = (next_time.tv_nsec + ((int)(controller->getControlPeriod() * 1000)) * 1000000) % 1000000000;\n\n    double time = next_time.tv_sec + (next_time.tv_nsec*0.000000001);\n    controller->process(time);\n\n    clock_gettime(CLOCK_MONOTONIC, &curr_time);\n    /////\n    double delta_nsec = controller->getControlPeriod() - ((next_time.tv_sec - curr_time.tv_sec) + ((double)(next_time.tv_nsec - curr_time.tv_nsec)*0.000000001));\n    //log::info(\"control time : \", controller->getControlPeriod() - delta_nsec);\n    if (delta_nsec > controller->getControlPeriod())\n    {\n      //log::warn(\"Over the control time : \", delta_nsec);\n      next_time = curr_time;\n    }\n    else\n      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next_time, NULL);\n    /////\n  }\n  return 0;\n}\n\n/********************************************************************************\n** Init Functions\n********************************************************************************/\nvoid ArmManipulatorController::initPublisher()\n{\n  // ros message publisher\n  auto right_om_tools_name = right_manipulator_.getManipulator()->getAllToolComponentName();\n  auto left_om_tools_name = right_manipulator_.getManipulator()->getAllToolComponentName();\n\n  for (auto const& name:right_om_tools_name)\n  {\n    ros::Publisher pb;\n    pb = node_handle_.advertise<open_manipulator_msgs::KinematicsPose>(name + \"/kinematics_pose\", 10);\n    right_arm_manipulator_kinematics_pose_pub_.push_back(pb);\n  }\n  for (auto const& name:left_om_tools_name)\n  {\n    ros::Publisher pb;\n    pb = node_handle_.advertise<open_manipulator_msgs::KinematicsPose>(name + \"/kinematics_pose\", 10);\n    left_arm_manipulator_kinematics_pose_pub_.push_back(pb);\n  }\n  right_arm_manipulator_states_pub_ = node_handle_.advertise<open_manipulator_msgs::OpenManipulatorState>(\"right_arm_states\", 10);\n  left_arm_manipulator_states_pub_ = node_handle_.advertise<open_manipulator_msgs::OpenManipulatorState>(\"left_arm_states\", 10);\n\n  if (using_platform_ == true)\n  {\n    right_arm_manipulator_joint_states_pub_ = node_handle_.advertise<sensor_msgs::JointState>(\"right_arm_joint_states\", 10);\n    left_arm_manipulator_joint_states_pub_ = node_handle_.advertise<sensor_msgs::JointState>(\"left_arm_joint_states\", 10);\n  }\n  else\n  {\n    auto gazebo_right_arm_joints_name = right_manipulator_.getManipulator()->getAllActiveJointComponentName();\n    auto gazebo_left_arm_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();\n    gazebo_right_arm_joints_name.reserve(gazebo_right_arm_joints_name.size() + right_om_tools_name.size());\n    gazebo_left_arm_joints_name.reserve(gazebo_left_arm_joints_name.size() + left_om_tools_name.size());\n    gazebo_right_arm_joints_name.insert(gazebo_right_arm_joints_name.end(), right_om_tools_name.begin(), right_om_tools_name.end());\n    gazebo_left_arm_joints_name.insert(gazebo_left_arm_joints_name.end(), left_om_tools_name.begin(), left_om_tools_name.end());\n\n    for (auto const& name:gazebo_right_arm_joints_name)\n    {\n      ros::Publisher pb;\n      pb = node_handle_.advertise<std_msgs::Float64>(\"EffortJointInterface\" + name + \"_controller/command\", 10);\n      gazebo_right_arm_goal_joint_position_pub_.push_back(pb);\n    }\n    for (auto const& name:gazebo_left_arm_joints_name)\n    {\n      ros::Publisher pb;\n      pb = node_handle_.advertise<std_msgs::Float64>(\"EffortJointInterface\" + name + \"_controller/command\", 10);\n      gazebo_left_arm_goal_joint_position_pub_.push_back(pb);\n    }\n  }\n}\nvoid ArmManipulatorController::initSubscriber()\n{\n  // ros message subscriber\n  arm_manipulator_option_sub_ = node_handle_.subscribe(\"option\", 10, &ArmManipulatorController::openManipulatorOptionCallback, this);\n}\n\nvoid ArmManipulatorController::initServer()\n{\n  //goal_joint_space_path_server_                     = node_handle_.advertiseService(\"goal_joint_space_path\", &ArmManipulatorController::goalJointSpacePathCallback, this);\n  //goal_joint_space_path_to_kinematics_pose_server_  = node_handle_.advertiseService(\"goal_joint_space_path_to_kinematics_pose\", &ArmManipulatorController::goalJointSpacePathToKinematicsPoseCallback, this);\n  //goal_joint_space_path_to_kinematics_position_server_  = node_handle_.advertiseService(\"goal_joint_space_path_to_kinematics_position\", &ArmManipulatorController::goalJointSpacePathToKinematicsPositionCallback, this);\n  //goal_joint_space_path_to_kinematics_orientation_server_  = node_handle_.advertiseService(\"goal_joint_space_path_to_kinematics_orientation\", &ArmManipulatorController::goalJointSpacePathToKinematicsOrientationCallback, this);\n\n  //goal_task_space_path_server_                  = node_handle_.advertiseService(\"goal_task_space_path\", &ArmManipulatorController::goalTaskSpacePathCallback, this);\n  //goal_task_space_path_position_only_server_    = node_handle_.advertiseService(\"goal_task_space_path_position_only\", &ArmManipulatorController::goalTaskSpacePathPositionOnlyCallback, this);\n  //goal_task_space_path_orientation_only_server_ = node_handle_.advertiseService(\"goal_task_space_path_orientation_only\", &ArmManipulatorController::goalTaskSpacePathOrientationOnlyCallback, this);\n\n  goal_joint_space_path_from_present_server_      = node_handle_.advertiseService(\"goal_joint_space_path_from_present\", &ArmManipulatorController::goalJointSpacePathFromPresentCallback, this);\n\n  //goal_task_space_path_from_present_server_                   = node_handle_.advertiseService(\"goal_task_space_path_from_present\", &ArmManipulatorController::goalTaskSpacePathFromPresentCallback, this);\n  //goal_task_space_path_from_present_position_only_server_     = node_handle_.advertiseService(\"goal_task_space_path_from_present_position_only\", &ArmManipulatorController::goalTaskSpacePathFromPresentPositionOnlyCallback, this);\n  //goal_task_space_path_from_present_orientation_only_server_  = node_handle_.advertiseService(\"goal_task_space_path_from_present_orientation_only\", &ArmManipulatorController::goalTaskSpacePathFromPresentOrientationOnlyCallback, this);\n\n  //goal_tool_control_server_         = node_handle_.advertiseService(\"goal_tool_control\", &ArmManipulatorController::goalToolControlCallback, this);\n  set_actuator_state_server_        = node_handle_.advertiseService(\"set_actuator_state\", &ArmManipulatorController::setActuatorStateCallback, this);\n  //goal_drawing_trajectory_server_   = node_handle_.advertiseService(\"goal_drawing_trajectory\", &ArmManipulatorController::goalDrawingTrajectoryCallback, this);\n}\n\n/*****************************************************************************\n** Callback Functions for ROS Subscribers\n*****************************************************************************/\nvoid ArmManipulatorController::openManipulatorOptionCallback(const std_msgs::String::ConstPtr &msg)\n{\n  if (msg->data == \"print_open_manipulator_setting\")\n    right_manipulator_.printManipulatorSetting();\n    left_manipulator_.printManipulatorSetting();\n}\n\n/*****************************************************************************\n** Callback Functions for ROS Servers\n*****************************************************************************/\n// bool ArmManipulatorController::goalJointSpacePathCallback(open_manipulator_msgs::SetJointPosition::Request  &req,\n//                                                            open_manipulator_msgs::SetJointPosition::Response &res)\n// {\n//   std::vector <double> target_angle;\n\n//   for (int i = 0; i < req.joint_position.joint_name.size(); i ++)\n//     target_angle.push_back(req.joint_position.position.at(i));\n\n//   if (!open_manipulator_.makeJointTrajectory(target_angle, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalJointSpacePathToKinematicsPoseCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                            open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   KinematicPose target_pose;\n//   target_pose.position[0] = req.kinematics_pose.pose.position.x;\n//   target_pose.position[1] = req.kinematics_pose.pose.position.y;\n//   target_pose.position[2] = req.kinematics_pose.pose.position.z;\n\n//   Eigen::Quaterniond q(req.kinematics_pose.pose.orientation.w,\n//                        req.kinematics_pose.pose.orientation.x,\n//                        req.kinematics_pose.pose.orientation.y,\n//                        req.kinematics_pose.pose.orientation.z);\n\n//   target_pose.orientation = math::convertQuaternionToRotationMatrix(q);\n\n//   if (!open_manipulator_.makeJointTrajectory(req.end_effector_name, target_pose, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalJointSpacePathToKinematicsPositionCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                                open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   KinematicPose target_pose;\n//   target_pose.position[0] = req.kinematics_pose.pose.position.x;\n//   target_pose.position[1] = req.kinematics_pose.pose.position.y;\n//   target_pose.position[2] = req.kinematics_pose.pose.position.z;\n\n//   if (!open_manipulator_.makeJointTrajectory(req.end_effector_name, target_pose.position, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalJointSpacePathToKinematicsOrientationCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                                   open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   KinematicPose target_pose;\n\n//   Eigen::Quaterniond q(req.kinematics_pose.pose.orientation.w,\n//                        req.kinematics_pose.pose.orientation.x,\n//                        req.kinematics_pose.pose.orientation.y,\n//                        req.kinematics_pose.pose.orientation.z);\n\n//   target_pose.orientation = math::convertQuaternionToRotationMatrix(q);\n\n//   if (!open_manipulator_.makeJointTrajectory(req.end_effector_name, target_pose.orientation, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalTaskSpacePathCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                           open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   KinematicPose target_pose;\n//   target_pose.position[0] = req.kinematics_pose.pose.position.x;\n//   target_pose.position[1] = req.kinematics_pose.pose.position.y;\n//   target_pose.position[2] = req.kinematics_pose.pose.position.z;\n\n//   Eigen::Quaterniond q(req.kinematics_pose.pose.orientation.w,\n//                        req.kinematics_pose.pose.orientation.x,\n//                        req.kinematics_pose.pose.orientation.y,\n//                        req.kinematics_pose.pose.orientation.z);\n\n//   target_pose.orientation = math::convertQuaternionToRotationMatrix(q);\n//   if (!open_manipulator_.makeTaskTrajectory(req.end_effector_name, target_pose, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalTaskSpacePathPositionOnlyCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                       open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   Eigen::Vector3d position;\n//   position[0] = req.kinematics_pose.pose.position.x;\n//   position[1] = req.kinematics_pose.pose.position.y;\n//   position[2] = req.kinematics_pose.pose.position.z;\n\n//   if (!open_manipulator_.makeTaskTrajectory(req.end_effector_name, position, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalTaskSpacePathOrientationOnlyCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                          open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   Eigen::Quaterniond q(req.kinematics_pose.pose.orientation.w,\n//                        req.kinematics_pose.pose.orientation.x,\n//                        req.kinematics_pose.pose.orientation.y,\n//                        req.kinematics_pose.pose.orientation.z);\n\n//   Eigen::Matrix3d orientation = math::convertQuaternionToRotationMatrix(q);\n\n//   if (!open_manipulator_.makeTaskTrajectory(req.end_effector_name, orientation, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\nbool ArmManipulatorController::goalJointSpacePathFromPresentCallback(open_manipulator_msgs::SetJointPosition::Request  &req,\n                                                                      open_manipulator_msgs::SetJointPosition::Response &res)\n{\n  std::vector <double> right_target_angle;\n  std::vector<double> left_target_angle;\n\n  for (int i = 0; i < req.joint_position.joint_name.size()/2.0; i ++)\n    right_target_angle.push_back(req.joint_position.position.at(i));\n\n  for (int i = req.joint_position.joint_name.size()/2.0; i < req.joint_position.joint_name.size(); i ++)\n    left_target_angle.push_back(req.joint_position.position.at(i));\n\n  // REMOVE AFTER DEBUGGING\n  \n\n  if (!(right_manipulator_.makeJointTrajectoryFromPresentPosition(right_target_angle, req.path_time)&&left_manipulator_.makeJointTrajectoryFromPresentPosition(left_target_angle, req.path_time)))\n    res.is_planned = false;\n  else\n    res.is_planned = true;\n\n  return true;\n}\n\n// bool ArmManipulatorController::goalTaskSpacePathFromPresentCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                      open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   KinematicPose target_pose;\n//   target_pose.position[0] = req.kinematics_pose.pose.position.x;\n//   target_pose.position[1] = req.kinematics_pose.pose.position.y;\n//   target_pose.position[2] = req.kinematics_pose.pose.position.z;\n\n//   Eigen::Quaterniond q(req.kinematics_pose.pose.orientation.w,\n//                        req.kinematics_pose.pose.orientation.x,\n//                        req.kinematics_pose.pose.orientation.y,\n//                        req.kinematics_pose.pose.orientation.z);\n\n//   target_pose.orientation = math::convertQuaternionToRotationMatrix(q);\n\n//   if (!open_manipulator_.makeTaskTrajectoryFromPresentPose(req.planning_group, target_pose, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalTaskSpacePathFromPresentPositionOnlyCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                                  open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   Eigen::Vector3d position;\n//   position[0] = req.kinematics_pose.pose.position.x;\n//   position[1] = req.kinematics_pose.pose.position.y;\n//   position[2] = req.kinematics_pose.pose.position.z;\n\n//   if (!open_manipulator_.makeTaskTrajectoryFromPresentPose(req.planning_group, position, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalTaskSpacePathFromPresentOrientationOnlyCallback(open_manipulator_msgs::SetKinematicsPose::Request  &req,\n//                                                                                     open_manipulator_msgs::SetKinematicsPose::Response &res)\n// {\n//   Eigen::Quaterniond q(req.kinematics_pose.pose.orientation.w,\n//                         req.kinematics_pose.pose.orientation.x,\n//                         req.kinematics_pose.pose.orientation.y,\n//                         req.kinematics_pose.pose.orientation.z);\n\n//   Eigen::Matrix3d orientation = math::convertQuaternionToRotationMatrix(q);\n\n//   if (!open_manipulator_.makeTaskTrajectoryFromPresentPose(req.planning_group, orientation, req.path_time))\n//     res.is_planned = false;\n//   else\n//     res.is_planned = true;\n\n//   return true;\n// }\n\n// bool ArmManipulatorController::goalToolControlCallback(open_manipulator_msgs::SetJointPosition::Request  &req,\n//                                                         open_manipulator_msgs::SetJointPosition::Response &res)\n// {\n//   for (int i = 0; i < req.joint_position.joint_name.size(); i ++)\n//   {\n//     if (!open_manipulator_.makeToolTrajectory(req.joint_position.joint_name.at(i), req.joint_position.position.at(i)))\n//       res.is_planned = false;\n//     else\n//       res.is_planned = true;\n//   }\n\n//   return true;\n// }\n\nbool ArmManipulatorController::setActuatorStateCallback(open_manipulator_msgs::SetActuatorState::Request  &req,\n                                                         open_manipulator_msgs::SetActuatorState::Response &res)\n{\n  if (req.set_actuator_state == true) // enable actuators\n  {\n    log::println(\"Wait a second for actuator enable\", \"GREEN\");\n    timer_thread_state_ = false;\n    pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete\n    right_manipulator_.enableAllActuator();\n    left_manipulator_.enableAllActuator();\n    startTimerThread();\n  }\n  else // disable actuators\n  {\n    log::println(\"Wait a second for actuator disable\", \"GREEN\");\n    timer_thread_state_ = false;\n    pthread_join(timer_thread_, NULL); // Wait for the thread associated with thread_p to complete\n    right_manipulator_.disableAllActuator();\n    left_manipulator_.disableAllActuator();\n    startTimerThread();\n  }\n\n  res.is_planned = true;\n\n  return true;\n}\n\n// bool ArmManipulatorController::goalDrawingTrajectoryCallback(open_manipulator_msgs::SetDrawingTrajectory::Request  &req,\n//                                                               open_manipulator_msgs::SetDrawingTrajectory::Response &res)\n// {\n//   try\n//   {\n//     if (req.drawing_trajectory_name == \"circle\")\n//     {\n//       double draw_circle_arg[3];\n//       draw_circle_arg[0] = req.param[0];  // radius (m)\n//       draw_circle_arg[1] = req.param[1];  // revolution (rev)\n//       draw_circle_arg[2] = req.param[2];  // start angle position (rad)\n//       void* p_draw_circle_arg = &draw_circle_arg;\n\n//       if (!open_manipulator_.makeCustomTrajectory(CUSTOM_TRAJECTORY_CIRCLE, req.end_effector_name, p_draw_circle_arg, req.path_time))\n//         res.is_planned = false;\n//       else\n//         res.is_planned = true;\n//     }\n//     else if (req.drawing_trajectory_name == \"line\")\n//     {\n//       TaskWaypoint draw_line_arg;\n//       draw_line_arg.kinematic.position(0) = req.param[0]; // x axis (m)\n//       draw_line_arg.kinematic.position(1) = req.param[1]; // y axis (m)\n//       draw_line_arg.kinematic.position(2) = req.param[2]; // z axis (m)\n//       void *p_draw_line_arg = &draw_line_arg;\n      \n//       if (!open_manipulator_.makeCustomTrajectory(CUSTOM_TRAJECTORY_LINE, req.end_effector_name, p_draw_line_arg, req.path_time))\n//         res.is_planned = false;\n//       else\n//         res.is_planned = true;\n//     }\n//     else if (req.drawing_trajectory_name == \"rhombus\")\n//     {\n//       double draw_rhombus_arg[3];\n//       draw_rhombus_arg[0] = req.param[0];  // radius (m)\n//       draw_rhombus_arg[1] = req.param[1];  // revolution (rev)\n//       draw_rhombus_arg[2] = req.param[2];  // start angle position (rad)\n//       void* p_draw_rhombus_arg = &draw_rhombus_arg;\n\n//       if (!open_manipulator_.makeCustomTrajectory(CUSTOM_TRAJECTORY_RHOMBUS, req.end_effector_name, p_draw_rhombus_arg, req.path_time))\n//         res.is_planned = false;\n//       else\n//         res.is_planned = true;\n//     }\n//     else if (req.drawing_trajectory_name == \"heart\")\n//     {\n//       double draw_heart_arg[3];\n//       draw_heart_arg[0] = req.param[0];  // radius (m)\n//       draw_heart_arg[1] = req.param[1];  // revolution (rev)\n//       draw_heart_arg[2] = req.param[2];  // start angle position (rad)\n//       void* p_draw_heart_arg = &draw_heart_arg;\n\n//       if (!open_manipulator_.makeCustomTrajectory(CUSTOM_TRAJECTORY_HEART, req.end_effector_name, p_draw_heart_arg, req.path_time))\n//         res.is_planned = false;\n//       else\n//         res.is_planned = true;\n//     }\n\n//     return true;\n//   }\n//   catch ( ros::Exception &e )\n//   {\n//     log::error(\"Creation the custom trajectory is failed!\");\n//   }\n\n//   return true;\n// }\n\n/********************************************************************************\n** Callback function for process timer\n********************************************************************************/\nvoid ArmManipulatorController::process(double time)\n{\n  right_manipulator_.processArmManipulator(time);\n  left_manipulator_.processArmManipulator(time);\n}\n\n/********************************************************************************\n** Callback function for publish timer\n********************************************************************************/\nvoid ArmManipulatorController::publishCallback(const ros::TimerEvent&)\n{\n  if (using_platform_ == true)  publishJointStates();\n  else publishGazeboCommand();\n\n  publishOpenManipulatorStates();\n  //publishKinematicsPose();\n}\n\nvoid ArmManipulatorController::publishOpenManipulatorStates()\n{\n  open_manipulator_msgs::OpenManipulatorState msg;\n  if (right_manipulator_.getMovingState())\n    msg.open_manipulator_moving_state = msg.IS_MOVING;\n  else\n    msg.open_manipulator_moving_state = msg.STOPPED;\n\n\n  if (right_manipulator_.getActuatorEnabledState(JOINT_DYNAMIXEL))\n    msg.open_manipulator_actuator_state = msg.ACTUATOR_ENABLED;\n  else\n    msg.open_manipulator_actuator_state = msg.ACTUATOR_DISABLED;\n\n  right_arm_manipulator_states_pub_.publish(msg);\n\n  if (left_manipulator_.getMovingState())\n    msg.open_manipulator_moving_state = msg.IS_MOVING;\n  else\n    msg.open_manipulator_moving_state = msg.STOPPED;\n\n\n  if (left_manipulator_.getActuatorEnabledState(JOINT_DYNAMIXEL))\n    msg.open_manipulator_actuator_state = msg.ACTUATOR_ENABLED;\n  else\n    msg.open_manipulator_actuator_state = msg.ACTUATOR_DISABLED;\n\n  left_arm_manipulator_states_pub_.publish(msg);\n}\n\n// void ArmManipulatorController::publishKinematicsPose()\n// {\n//   open_manipulator_msgs::KinematicsPose msg;\n//   auto om_tools_name = open_manipulator_.getManipulator()->getAllToolComponentName();\n\n//   uint8_t index = 0;\n//   for (auto const& tools:om_tools_name)\n//   {\n//     KinematicPose pose = open_manipulator_.getKinematicPose(tools);\n//     msg.pose.position.x = pose.position[0];\n//     msg.pose.position.y = pose.position[1];\n//     msg.pose.position.z = pose.position[2];\n//     Eigen::Quaterniond orientation = math::convertRotationMatrixToQuaternion(pose.orientation);\n//     msg.pose.orientation.w = orientation.w();\n//     msg.pose.orientation.x = orientation.x();\n//     msg.pose.orientation.y = orientation.y();\n//     msg.pose.orientation.z = orientation.z();\n\n//     open_manipulator_kinematics_pose_pub_.at(index).publish(msg);\n//     index++;\n//   }\n// }\n\nvoid ArmManipulatorController::publishJointStates()\n{\n  sensor_msgs::JointState right_msg;\n  right_msg.header.stamp = ros::Time::now();\n  sensor_msgs::JointState left_msg;\n  left_msg.header.stamp = ros::Time::now();\n\n  auto right_joints_name = right_manipulator_.getManipulator()->getAllActiveJointComponentName();\n  auto left_joints_name = left_manipulator_.getManipulator()->getAllActiveJointComponentName();\n  // auto right_tool_name = right_manipulator_.getManipulator()->getAllToolComponentName();\n  // auto left_tool_name = left_manipulator_.getManipulator()->getAllToolComponentName();\n\n  auto right_joint_value = right_manipulator_.getAllActiveJointValue();\n  auto left_joint_value = left_manipulator_.getAllActiveJointValue();\n  // auto right_tool_value = right_manipulator_.getAllToolValue();\n  // auto left_tool_value = left_manipulator_.getAllToolValue();\n\n  for (uint8_t i = 0; i < right_joints_name.size(); i ++)\n  {\n    right_msg.name.push_back(right_joints_name.at(i));\n\n    right_msg.position.push_back(right_joint_value.at(i).position);\n    right_msg.velocity.push_back(right_joint_value.at(i).velocity);\n    right_msg.effort.push_back(right_joint_value.at(i).effort);\n  }\n\n  for (uint8_t i = 0; i < left_joints_name.size(); i ++)\n  {\n    left_msg.name.push_back(left_joints_name.at(i));\n\n    left_msg.position.push_back(left_joint_value.at(i).position);\n    left_msg.velocity.push_back(left_joint_value.at(i).velocity);\n    left_msg.effort.push_back(left_joint_value.at(i).effort);\n  }\n\n  // for (uint8_t i = 0; i < right_tool_name.size(); i ++)\n  // {\n  //   right_msg.name.push_back(right_tool_name.at(i));\n\n  //   right_msg.position.push_back(right_tool_value.at(i).position);\n  //   right_msg.velocity.push_back(0.0f);\n  //   right_msg.effort.push_back(0.0f);\n  // }\n\n  // for (uint8_t i = 0; i < left_tool_name.size(); i ++)\n  // {\n  //   left_msg.name.push_back(left_tool_name.at(i));\n\n  //   left_msg.position.push_back(left_tool_value.at(i).position);\n  //   left_msg.velocity.push_back(0.0f);\n  //   left_msg.effort.push_back(0.0f);\n  // }\n\n  right_arm_manipulator_joint_states_pub_.publish(right_msg);\n  left_arm_manipulator_joint_states_pub_.publish(left_msg);\n}\n\nvoid ArmManipulatorController::publishGazeboCommand()\n{\n  JointWaypoint right_joint_value = right_manipulator_.getAllActiveJointValue();\n  JointWaypoint left_joint_value = left_manipulator_.getAllActiveJointValue();\n  JointWaypoint right_tool_value = right_manipulator_.getAllToolValue();\n  JointWaypoint left_tool_value = left_manipulator_.getAllToolValue();\n\n  for (uint8_t i = 0; i < right_joint_value.size(); i ++)\n  {\n    std_msgs::Float64 msg;\n    msg.data = right_joint_value.at(i).position;\n\n    gazebo_right_arm_goal_joint_position_pub_.at(i).publish(msg);\n\n    msg.data = left_joint_value.at(i).position;\n    gazebo_left_arm_goal_joint_position_pub_.at(i).publish(msg);\n  }\n\n  for (uint8_t i = 0; i < right_tool_value.size(); i ++)\n  {\n    std_msgs::Float64 msg;\n    msg.data = right_tool_value.at(i).position;\n\n    gazebo_right_arm_goal_joint_position_pub_.at(right_joint_value.size() + i).publish(msg);\n\n    msg.data = left_tool_value.at(i).position;\n\n    gazebo_left_arm_goal_joint_position_pub_.at(left_joint_value.size() + i).publish(msg);\n  }\n}\n\n/*****************************************************************************\n** Main\n*****************************************************************************/\nint main(int argc, char **argv)\n{\n  // init\n  ros::init(argc, argv, \"arm_manipulator_controller\");\n  ros::NodeHandle node_handle(\"\");\n\n  std::string usb_port = \"/dev/ttyUSB0\";\n  std::string baud_rate = \"1000000\";\n\n  if (argc = 3)\n  {\n    usb_port = argv[1];\n    baud_rate = argv[2];\n    printf(\"port_name and baud_rate are set to %s, %s \\n\", usb_port.c_str(), baud_rate.c_str());\n  }\n  else\n  {\n    log::error(\"Please set '-port_name' and  '-baud_rate' arguments for connected Dynamixels\");\n    return 1;\n  }\n\n  ArmManipulatorController manipulator_controller(usb_port, baud_rate);\n\n  // update\n  manipulator_controller.startTimerThread();\n  ros::Timer publish_timer = node_handle.createTimer(ros::Duration(manipulator_controller.getControlPeriod()), &ArmManipulatorController::publishCallback, &manipulator_controller);\n  ros::Rate loop_rate(100);\n  while (ros::ok())\n  {\n    ros::spinOnce();\n    loop_rate.sleep();\n  }\n\n  return 0;\n}\n",
-			"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
-			"file_size": 32155,
-			"file_write_time": 132346472366152998,
-			"settings":
-			{
-				"buffer_size": 32184,
 				"line_ending": "Unix"
 			}
 		},
@@ -116,19 +95,37 @@
 			}
 		},
 		{
-			"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator.h",
+			"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/arm_manipulator.h",
 			"settings":
 			{
-				"buffer_size": 13935,
+				"buffer_size": 2133,
 				"encoding": "UTF-8 with BOM",
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
+			"file": "open_manipulator/open_manipulator_teleop/src/dual_manipulator_teleop_keyboard.cpp",
 			"settings":
 			{
-				"buffer_size": 4021,
+				"buffer_size": 34599,
+				"encoding": "UTF-8 with BOM",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
+			"settings":
+			{
+				"buffer_size": 32196,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "open_manipulator/open_manipulator_controller/include/open_manipulator_controller/arm_manipulator_controller.h",
+			"settings":
+			{
+				"buffer_size": 8581,
 				"encoding": "UTF-8 with BOM",
 				"line_ending": "Unix"
 			}
@@ -199,13 +196,15 @@
 	},
 	"expanded_folders":
 	[
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator"
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator"
 	],
 	"file_history":
 	[
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_controller/launch/arm_manipulator_controller.launch",
+		"/usr/include/math.h",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator/robotis_manipulator.h",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/src/robotis_manipulator/robotis_manipulator.cpp",
 		"/home/juan/Desktop/test.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/dual_manipulator.sublime-project",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_control_gui/src/qnode.cpp",
@@ -260,7 +259,7 @@
 	],
 	"find":
 	{
-		"height": 26.0
+		"height": 40.0
 	},
 	"find_in_files":
 	{
@@ -274,6 +273,17 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"goalJoi",
+			"DELTA",
+			"pub",
+			"NUM",
+			"ser",
+			"right_arm_prese",
+			"publishJoint",
+			"gazebo_left",
+			"left",
+			"left_man",
+			"Please check your Dynamixel firmware version (v38~)",
 			"processArm",
 			"timerThread",
 			"process",
@@ -313,7 +323,7 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -329,8 +339,8 @@
 						"selection":
 						[
 							[
-								2961,
-								2961
+								1245,
+								1245
 							]
 						],
 						"settings":
@@ -340,10 +350,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 579.0,
+						"translation.y": 248.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 8,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -352,15 +362,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12244,
+						"buffer_size": 13003,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								12090,
-								12090
+								2586,
+								2586
 							]
 						],
 						"settings":
@@ -370,102 +380,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 663.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/arm_manipulator.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2113,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1863,
-								1863
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax"
-						},
-						"translation.x": 0.0,
-						"translation.y": 204.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 9,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "open_manipulator/open_manipulator_teleop/src/dual_manipulator_teleop_keyboard.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 34472,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1046,
-								1046
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 255.0,
+						"translation.y": 4044.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 32184,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								27857,
-								27857
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 10803.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
+					"buffer": 2,
 					"file": "robotis_manipulator/src/robotis_manipulator/robotis_manipulator.cpp",
 					"semi_transient": false,
 					"settings":
@@ -477,8 +399,8 @@
 						"selection":
 						[
 							[
-								17709,
-								17709
+								16494,
+								16494
 							]
 						],
 						"settings":
@@ -488,27 +410,55 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 765.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
-					"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator.h",
+					"buffer": 3,
+					"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/arm_manipulator.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 13935,
+						"buffer_size": 2133,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1273,
-								1273
+								911,
+								911
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 469.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "open_manipulator/open_manipulator_teleop/src/dual_manipulator_teleop_keyboard.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 34599,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								16052,
+								16052
 							]
 						],
 						"settings":
@@ -518,7 +468,67 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 153.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 32196,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								6431,
+								6431
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 9441.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "open_manipulator/open_manipulator_controller/include/open_manipulator_controller/arm_manipulator_controller.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 8581,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5415,
+								5415
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2179.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 3,
@@ -526,36 +536,6 @@
 				},
 				{
 					"buffer": 7,
-					"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 4021,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2577,
-								2577
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1266.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 8,
 					"file": "open_manipulator/open_manipulator_libs/src/dynamixel.cpp",
 					"semi_transient": false,
 					"settings":
@@ -567,8 +547,8 @@
 						"selection":
 						[
 							[
-								18261,
-								18261
+								967,
+								967
 							]
 						],
 						"settings":
@@ -578,14 +558,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 10249.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 8,
 					"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator_common.h",
 					"semi_transient": false,
 					"settings":
@@ -611,11 +591,11 @@
 						"translation.y": 953.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 9,
 					"file": "robotis_manipulator/src/robotis_manipulator/robotis_manipulator_common.cpp",
 					"semi_transient": false,
 					"settings":
@@ -638,10 +618,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 450.0,
+						"translation.y": 1836.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 9,
 					"type": "text"
 				}
 			]
