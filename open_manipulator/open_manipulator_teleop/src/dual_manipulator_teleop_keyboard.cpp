@@ -285,6 +285,10 @@ void DualManipulatorTeleop::printText()
   printf("; : increase joint L6 angle\n");
   printf("/ : decrease joint L6 angle\n");
   printf("---------------------------\n");
+  std::cout << "- : increase Path Time by: " << dt << std::endl;
+  std::cout << "[ : decrease Path Time by: " << dt <<std::endl;
+  std::cout << " + : increase Joint Delta by " << dq << std::endl;
+  std::cout << " ] : decrease Joint Delta by " << dq << std::endl;
   // printf("g : gripper open\n");
   // printf("f : gripper close\n");
   // printf("       \n");
@@ -311,6 +315,8 @@ void DualManipulatorTeleop::printText()
   //        getPresentKinematicsPose().at(0),
   //        getPresentKinematicsPose().at(1),
   //        getPresentKinematicsPose().at(2));
+  printf("Present Joint Delta: %.3f, Present Path Time: %.3f, Present Joint Velocity: %.3f\n",
+         JOINT_DELTA, PATH_TIME, JOINT_DELTA/PATH_TIME);
   printf("---------------------------\n");
 
 }
@@ -787,6 +793,26 @@ void DualManipulatorTeleop::setGoal(char ch)
     joint_name.push_back("_wristJ1_L");
     joint_name.push_back("_wristJ2_L"); goalJoint.at(11) = -JOINT_DELTA;
     setJointSpacePathFromPresent(joint_name, goalJoint, PATH_TIME);
+  }
+  else if (ch == '-')
+  {
+    printf("input : - \tincrease(--) Path Time\n");
+    PATH_TIME += dt;
+  }
+  else if (ch == '[')
+  {
+    printf("input : [ \tdecrease(--) Path Time\n");
+    PATH_TIME -= dt;
+  }
+  else if (ch == '=')
+  {
+    printf("input : = \tincrease(--) Joint Delta\n");
+    JOINT_DELTA += dq;
+  }
+  else if (ch == ']')
+  {
+    printf("input : ] \tincrease(--) Joint Delta\n");
+    JOINT_DELTA -= dq;
   }
   // else if (ch == 'g' || ch == 'G')
   // {
