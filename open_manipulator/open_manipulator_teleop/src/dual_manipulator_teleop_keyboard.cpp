@@ -60,6 +60,8 @@ void DualManipulatorTeleop::initClient()
   goal_joint_space_path_from_present_client_ = node_handle_.serviceClient<open_manipulator_msgs::SetJointPosition>("goal_joint_space_path_from_present");
   //goal_task_space_path_from_present_position_only_client_ = node_handle_.serviceClient<open_manipulator_msgs::SetKinematicsPose>("goal_task_space_path_from_present_position_only");
   //goal_tool_control_client_ = node_handle_.serviceClient<open_manipulator_msgs::SetJointPosition>("goal_tool_control");
+
+  set_goal_current_client = node_handle_.serviceClient<open_manipulator_msgs::SetGoalCurrent>("set_goal_current");
 }
 
 void DualManipulatorTeleop::initSubscriber()
@@ -241,6 +243,17 @@ bool DualManipulatorTeleop::setTaskSpacePathFromPresentPositionOnly(std::vector<
 
   if (goal_task_space_path_from_present_position_only_client_.call(srv))
   {
+    return srv.response.is_planned;
+  }
+  return false;
+}
+
+bool DualManipulatorTeleop::setGoalCurrent(std::vector<std::string> joint_name, std::vector<float> goal_current){
+  open_manipulator_msgs::SetGoalCurrent srv;
+  srv.request.goal_current = goal_current;
+  srv.request.joint_name = joint_name;
+
+  if(set_goal_current_client.call(srv)){
     return srv.response.is_planned;
   }
   return false;
@@ -880,6 +893,9 @@ int main(int argc, char **argv)
 
   char ch;
   dualManipulatorTeleop.printText();
+  std::vector<std::string> joint_names{"_J1_R", "_J2_R","_J3_R","_J4_R"};
+  std::vector<float> current{500,500,500,500};  
+  dualManipulatorTeleop.setGoalCurrent(joint_names, current);
   while (ros::ok() && (ch = std::getchar()) != 'q')
   {
     ros::spinOnce();

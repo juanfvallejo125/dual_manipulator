@@ -24,6 +24,8 @@
 #include "kinematics.h"
 #include "iostream"
 
+#include <map>
+
 #define CUSTOM_TRAJECTORY_SIZE 4
 #define CUSTOM_TRAJECTORY_LINE    "custom_trajectory_line"
 #define CUSTOM_TRAJECTORY_CIRCLE  "custom_trajectory_circle"
@@ -37,6 +39,8 @@
 #define Y_AXIS robotis_manipulator::math::vector3(0.0, 1.0, 0.0)
 #define Z_AXIS robotis_manipulator::math::vector3(0.0, 0.0, 1.0)
 
+#define INITIAL_GOAL_CURRENT 400
+
 class ArmManipulator : public robotis_manipulator::RobotisManipulator
 {
   
@@ -46,12 +50,19 @@ private:
   robotis_manipulator::ToolActuator *tool_;
   robotis_manipulator::CustomTaskTrajectory *custom_trajectory_[CUSTOM_TRAJECTORY_SIZE];
 
+  std::map<std::string, float> joint_goal_currents;
+
 public:
   ArmManipulator();
   virtual ~ArmManipulator();
 
   void initArmManipulator(bool using_actual_robot_state, STRING usb_port = "/dev/ttyUSB0", STRING baud_rate = "1000000", float control_loop_time = 0.010, STRING side = "R");
   void processArmManipulator(double present_time);
+
+  //Added by Juan
+  bool commandAllGoalCurrentValues();
+  std::vector<float> getAllGoalCurrentValues();
+  void setGoalCurrents(std::vector<std::string> joint_names, std::vector<float> goal_currents);
 };
 
 #endif // ARM_MANIPULTOR_H_

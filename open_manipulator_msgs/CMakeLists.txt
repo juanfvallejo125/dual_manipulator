@@ -25,6 +25,7 @@ add_message_files(
    JointPosition.msg
    KinematicsPose.msg
    OpenManipulatorState.msg
+   JointGoalCurrent.msg
  )
 
 add_service_files(
@@ -35,6 +36,7 @@ add_service_files(
    SetKinematicsPose.srv
    SetDrawingTrajectory.srv
    SetActuatorState.srv
+   SetGoalCurrent.srv
  )
 
 generate_messages(

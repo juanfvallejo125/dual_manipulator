@@ -39,6 +39,8 @@
 #include "open_manipulator_msgs/GetJointPosition.h"
 #include "open_manipulator_msgs/GetKinematicsPose.h"
 #include "open_manipulator_msgs/OpenManipulatorState.h"
+#include "open_manipulator_msgs/SetGoalCurrent.h"
+#include "open_manipulator_msgs/JointGoalCurrent.h"
 
 namespace arm_manipulator_controller
 {
@@ -99,10 +101,15 @@ class ArmManipulatorController
   std::vector<ros::Publisher> gazebo_right_arm_goal_joint_position_pub_;
   std::vector<ros::Publisher> gazebo_left_arm_goal_joint_position_pub_;
 
+  // Added by Juan
+  ros::Publisher right_arm_joint_goal_current_pub;
+
   void publishOpenManipulatorStates();
   void publishKinematicsPose();
   void publishJointStates();
   void publishGazeboCommand();
+
+  void publishJointGoalCurrents();
 
   /*****************************************************************************
   ** ROS Subscribers and Callback Functions
@@ -132,6 +139,9 @@ class ArmManipulatorController
   ros::ServiceServer get_kinematics_pose_server_;
   ros::ServiceServer set_joint_position_server_;
   ros::ServiceServer set_kinematics_pose_server_;
+
+  //Added by Juan
+  ros::ServiceServer set_goal_current_server;
 
   bool goalJointSpacePathCallback(open_manipulator_msgs::SetJointPosition::Request  &req,
                                   open_manipulator_msgs::SetJointPosition::Response &res);
@@ -174,6 +184,10 @@ class ArmManipulatorController
 
   bool goalDrawingTrajectoryCallback(open_manipulator_msgs::SetDrawingTrajectory::Request  &req,
                                      open_manipulator_msgs::SetDrawingTrajectory::Response &res);
+
+  //Added by Juan
+  bool setGoalCurrentCallback(open_manipulator_msgs::SetGoalCurrent::Request &req,
+                              open_manipulator_msgs::SetGoalCurrent::Response &res);
 };
 }
 #endif //OPEN_MANIPULATOR_CONTROLLER_H_

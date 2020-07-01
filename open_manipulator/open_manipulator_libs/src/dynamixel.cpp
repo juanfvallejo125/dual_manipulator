@@ -522,7 +522,7 @@ bool JointDynamixelProfileControl::setOperatingMode(std::vector<uint8_t> actuato
 
   const uint32_t velocity = uint32_t(control_loop_time_*1000) * 3;
   const uint32_t acceleration = uint32_t(control_loop_time_*1000);
-  const uint32_t current = 0;
+  const uint32_t current = 400;
 
   if (dynamixel_mode == "position_mode")
   {
@@ -707,6 +707,22 @@ std::vector<robotis_manipulator::ActuatorValue> JointDynamixelProfileControl::re
   }
 
   return all_actuator;
+}
+
+//Added by Juan
+bool JointDynamixelProfileControl::sendGoalCurrentValue(std::vector<uint8_t> dynamixel_ids, std::vector<float> current_values){
+  const char* log = NULL;
+  int32_t raw_current_value = 0;
+  bool result;
+  for(uint8_t i = 0; i < dynamixel_ids.size(); i++){
+    raw_current_value = dynamixel_workbench_->convertCurrent2Value(current_values.at(i));
+    result = dynamixel_workbench_->writeRegister(dynamixel_ids.at(i), "Goal_Current", raw_current_value, &log);
+    if (result == false)
+    {
+      log::error(log);
+    }
+  }
+  return result;
 }
 
 

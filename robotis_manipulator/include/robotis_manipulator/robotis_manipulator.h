@@ -37,18 +37,18 @@ namespace robotis_manipulator
 class RobotisManipulator
 {
 private:
-  Manipulator manipulator_;
+  
   Trajectory trajectory_;
   Kinematics *kinematics_;
   Dynamics *dynamics_;
-  std::map<Name, JointActuator *> joint_actuator_;
+  
   std::map<Name, ToolActuator *> tool_actuator_;
 
   bool trajectory_initialized_state_;
   bool moving_state_;
   bool step_moving_state_;
 
-  bool joint_actuator_added_stete_;
+  
   bool tool_actuator_added_stete_;
   bool kinematics_added_state_;
   bool dynamics_added_state_;
@@ -61,6 +61,10 @@ public:
   RobotisManipulator();
   virtual ~RobotisManipulator();
 
+  std::map<Name, JointActuator *> joint_actuator_;
+  Manipulator manipulator_;
+
+  bool joint_actuator_added_stete_;
 
   /*****************************************************************************
   ** Initialize Function

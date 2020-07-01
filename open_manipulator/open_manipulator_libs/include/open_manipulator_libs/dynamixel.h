@@ -143,6 +143,9 @@ public:
   bool writeProfileValue(std::vector<uint8_t> actuator_id, STRING profile_mode, uint32_t value);
   bool writeGoalProfilingControlValue(std::vector<uint8_t> actuator_id, std::vector<robotis_manipulator::ActuatorValue> value_vector);
   std::vector<robotis_manipulator::ActuatorValue> receiveAllDynamixelValue(std::vector<uint8_t> actuator_id);
+  
+  //Added by Juan
+  bool sendGoalCurrentValue(std::vector<uint8_t>, std::vector<float> current_values);
 };
 
 class GripperDynamixel : public robotis_manipulator::ToolActuator

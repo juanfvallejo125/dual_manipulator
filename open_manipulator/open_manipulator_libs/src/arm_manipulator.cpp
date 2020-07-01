@@ -1,4 +1,4 @@
-﻿/*******************************************************************************
+/*******************************************************************************
 * Copyright 2018 ROBOTIS CO., LTD.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
@@ -66,6 +66,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
                                   1.8850320e-05),                                   // inertial tensor
               math::vector3(-3.0184870e-04, 5.4043684e-04, 0.018 + 2.9433464e-02)   // COM
               );
+    joint_goal_currents.insert({"_J1_"+side, INITIAL_GOAL_CURRENT});
 
     addJoint("_J2_"+side,  // my name
               "_J1_"+side,  // parent name
@@ -74,8 +75,8 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
               math::convertRPYToRotationMatrix(0.0, 0.0, 0.0), // relative orientation
               Y_AXIS,    // axis of rotation
               id_offset+2,        // actuator id
-              0.1,    // max joint limit (1.67 rad)
-              -M_PI,     // min joint limit (-2.05 rad)
+              0.1,    // max joint limit 
+              -M_PI,     // min joint limit 
               1.0,       // coefficient
               1.3850917e-01,                                                        // mass
               math::inertiaMatrix(3.3055381e-04, 9.7940978e-08, -3.8505711e-05,
@@ -83,6 +84,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
                                   6.0346498e-05),                                   // inertial tensor
               math::vector3(1.0308393e-02, 3.7743363e-04, 1.0170197e-01)            // COM
               );
+    joint_goal_currents.insert({"_J2_"+side, INITIAL_GOAL_CURRENT});
 
     addJoint("_J3_"+side,  // my name
               "_J2_"+side,  // parent name
@@ -100,6 +102,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
                                   2.5155057e-04),                                   // inertial tensor
               math::vector3(9.0909590e-02, 3.8929816e-04, 2.2413279e-04)            // COM
               );
+    joint_goal_currents.insert({"_J3_"+side, INITIAL_GOAL_CURRENT});
 
     addJoint("_J4_"+side,  // my name
               "_J3_"+side,  // parent name
@@ -117,6 +120,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
                                   9.3127351e-05),                                   // inertial tensor
               math::vector3(4.4206755e-02, 3.6839985e-07, 8.9142216e-03)            // COM
               );
+    joint_goal_currents.insert({"_J4_"+side, INITIAL_GOAL_CURRENT});
 
 
     // addJoint("_wristJ1_"+side,  // my name
@@ -205,7 +209,7 @@ void ArmManipulator::initArmManipulator(bool using_actual_robot_state, STRING us
 
     std::cout << "Setting joint actuator mode" << std::endl;
     // Set joint actuator control mode
-    STRING joint_dxl_mode_arg = "position_mode";
+    STRING joint_dxl_mode_arg = "current_based_position_mode";
     void *p_joint_dxl_mode_arg = &joint_dxl_mode_arg;
     setJointActuatorMode(JOINT_DYNAMIXEL, jointDxlId, p_joint_dxl_mode_arg);
     std::cout << "Joint actuator mode set" << std::endl;
@@ -276,4 +280,65 @@ void ArmManipulator::processArmManipulator(double present_time)
 
   // Perception (fk)
   //solveForwardKinematics();
+}
+
+//Added by Juan
+// This function sends to the dynamixels the goal currents in the joint goal currents map
+bool ArmManipulator::commandAllGoalCurrentValues(){
+  auto goal_current_vector = getAllGoalCurrentValues();
+  if(joint_actuator_added_stete_)
+  {
+    std::map<Name, Component>::iterator it;
+    std::vector<int8_t> joint_id;
+    size_t index = 0;
+    for (it = manipulator_.getIteratorBegin(); it != manipulator_.getIteratorEnd(); it++)
+    {
+      if(manipulator_.checkComponentType(it->first, ACTIVE_JOINT_COMPONENT))
+      {
+        joint_id.push_back(manipulator_.getId(it->first));
+        index++;
+      }
+    }
+
+    std::vector<uint8_t> single_actuator_id;
+    std::vector<float> single_value_vector;
+    std::map<Name, JointActuator *>::iterator it_joint_actuator;
+    for(it_joint_actuator = joint_actuator_.begin(); it_joint_actuator != joint_actuator_.end(); it_joint_actuator++)
+    {
+      single_actuator_id = joint_actuator_.at(it_joint_actuator->first)->getId();
+      for(uint32_t index = 0; index < single_actuator_id.size(); index++)
+      {
+        for(uint32_t index2=0; index2 < joint_id.size(); index2++)
+        {
+           if(single_actuator_id.at(index) == joint_id.at(index2))
+           {
+             single_value_vector.push_back(goal_current_vector.at(index2));
+           }
+        }
+      }
+      joint_actuator_.at(it_joint_actuator->first)->sendGoalCurrentValue(single_actuator_id, single_value_vector);
+    }
+    return true;
+  }
+  return false;
+}
+
+std::vector<float> ArmManipulator::getAllGoalCurrentValues(){
+  std::vector<float> goal_currents;
+  for(auto it = joint_goal_currents.begin(); it != joint_goal_currents.end(); it++){
+    goal_currents.push_back(it->second);
+  }
+  return goal_currents;
+}
+
+void ArmManipulator::setGoalCurrents(std::vector<std::string> joint_names, std::vector<float> goal_currents){
+  int index = 0;
+  for(auto it = joint_names.begin(); it != joint_names.end(); it++){
+    if(joint_goal_currents.find(*it) == joint_goal_currents.end()){
+      log::error("A joint you are trying to set the goal current of doesn't exist");
+    }else{
+      joint_goal_currents.at(*it) = goal_currents.at(index);
+      index++;
+    }
+  }
 }

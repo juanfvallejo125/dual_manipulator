@@ -75,6 +75,9 @@ public:
 
   bool findId(uint8_t actuator_id);
   bool getEnabledState();
+
+  //Added by Juan
+  virtual bool sendGoalCurrentValue(std::vector<uint8_t> dynamixel_ids, std::vector<float> current_values) = 0;
 };
 
 class ToolActuator

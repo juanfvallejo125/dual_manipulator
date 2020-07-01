@@ -29,6 +29,7 @@
 
 #include "open_manipulator_msgs/SetJointPosition.h"
 #include "open_manipulator_msgs/SetKinematicsPose.h"
+#include "open_manipulator_msgs/SetGoalCurrent.h"
 
 #define NUM_OF_JOINT 6 //Modified to 6 joints for one arm
 #define DELTA 0.01
@@ -36,7 +37,7 @@ double JOINT_DELTA = 0.05;
 double PATH_TIME = 0.1;
 
 double dt = 0.01;
-double dq = 0.005;
+double dq = 0.005;  
 
 class DualManipulatorTeleop
 {
@@ -47,6 +48,9 @@ class DualManipulatorTeleop
   // update
   void printText();
   void setGoal(char ch);
+
+  //Added by Juan
+  bool setGoalCurrent(std::vector<std::string> joint_name, std::vector<float> goal_current);
 
  private:
   /*****************************************************************************
@@ -109,10 +113,14 @@ class DualManipulatorTeleop
   ros::ServiceClient goal_task_space_path_from_present_position_only_client_;
   ros::ServiceClient goal_tool_control_client_;
 
+  //Added by Juan
+  ros::ServiceClient set_goal_current_client;
+
   bool setJointSpacePath(std::vector<std::string> joint_name, std::vector<double> joint_angle, double path_time);
   bool setJointSpacePathFromPresent(std::vector<std::string> joint_name, std::vector<double> joint_angle, double path_time);
   bool setTaskSpacePathFromPresentPositionOnly(std::vector<double> kinematics_pose, double path_time);
   bool setToolControl(std::vector<double> joint_angle);
+
 
   /*****************************************************************************
   ** Others

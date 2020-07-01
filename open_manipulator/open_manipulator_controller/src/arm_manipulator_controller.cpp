@@ -155,6 +155,8 @@ void ArmManipulatorController::initPublisher()
   {
     right_arm_manipulator_joint_states_pub_ = node_handle_.advertise<sensor_msgs::JointState>("right_arm_joint_states", 10);
     left_arm_manipulator_joint_states_pub_ = node_handle_.advertise<sensor_msgs::JointState>("left_arm_joint_states", 10);
+
+    right_arm_joint_goal_current_pub = node_handle_.advertise<open_manipulator_msgs::JointGoalCurrent>("right_arm_joint_goal_currents", 10);
   }
   else
   {
@@ -198,6 +200,8 @@ void ArmManipulatorController::initServer()
 
   goal_joint_space_path_from_present_server_      = node_handle_.advertiseService("goal_joint_space_path_from_present", &ArmManipulatorController::goalJointSpacePathFromPresentCallback, this);
 
+  set_goal_current_server = node_handle_.advertiseService("set_goal_current", &ArmManipulatorController::setGoalCurrentCallback, this);
+  
   //goal_task_space_path_from_present_server_                   = node_handle_.advertiseService("goal_task_space_path_from_present", &ArmManipulatorController::goalTaskSpacePathFromPresentCallback, this);
   //goal_task_space_path_from_present_position_only_server_     = node_handle_.advertiseService("goal_task_space_path_from_present_position_only", &ArmManipulatorController::goalTaskSpacePathFromPresentPositionOnlyCallback, this);
   //goal_task_space_path_from_present_orientation_only_server_  = node_handle_.advertiseService("goal_task_space_path_from_present_orientation_only", &ArmManipulatorController::goalTaskSpacePathFromPresentOrientationOnlyCallback, this);
@@ -368,6 +372,17 @@ bool ArmManipulatorController::goalJointSpacePathFromPresentCallback(open_manipu
   else
     res.is_planned = true;
 
+  return true;
+}
+
+//Added by Juan
+//This service callback updates the joint goal current map in the arm controller
+bool ArmManipulatorController::setGoalCurrentCallback(open_manipulator_msgs::SetGoalCurrent::Request &req,
+                                                        open_manipulator_msgs::SetGoalCurrent::Response &res)
+{
+  right_manipulator_.setGoalCurrents(req.joint_name, req.goal_current);
+  // res.is_planned = right_manipulator_.sendAllGoalCurrentValue(req.goal_current);
+  // return res.is_planned;
   return true;
 }
 
@@ -544,6 +559,9 @@ void ArmManipulatorController::process(double time)
 {
   right_manipulator_.processArmManipulator(time);
   // left_manipulator_.processArmManipulator(time);
+
+  //Added by Juan, send joint goal current
+  right_manipulator_.commandAllGoalCurrentValues();
 }
 
 /********************************************************************************
@@ -551,7 +569,10 @@ void ArmManipulatorController::process(double time)
 ********************************************************************************/
 void ArmManipulatorController::publishCallback(const ros::TimerEvent&)
 {
-  if (using_platform_ == true)  publishJointStates();
+  if (using_platform_ == true){
+    publishJointStates();
+    publishJointGoalCurrents();
+  }
   else publishGazeboCommand();
 
   publishOpenManipulatorStates();
@@ -665,6 +686,19 @@ void ArmManipulatorController::publishJointStates(){
 
   right_arm_manipulator_joint_states_pub_.publish(right_msg);
   left_arm_manipulator_joint_states_pub_.publish(left_msg);
+}
+
+void ArmManipulatorController::publishJointGoalCurrents(){
+  open_manipulator_msgs::JointGoalCurrent msg;
+
+  auto joint_names = right_manipulator_.getManipulator()->getAllActiveJointComponentName();
+  auto joint_values = right_manipulator_.getAllGoalCurrentValues();
+
+  for(uint8_t i = 0; i < joint_names.size(); i++){
+    msg.joint_name.push_back(joint_names.at(i));
+    msg.goal_current.push_back(joint_values.at(i));
+  }
+  right_arm_joint_goal_current_pub.publish(msg);
 }
 
 void ArmManipulatorController::publishGazeboCommand(){
