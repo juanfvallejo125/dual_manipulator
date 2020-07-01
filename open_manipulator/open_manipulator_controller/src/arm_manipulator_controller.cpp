@@ -381,8 +381,12 @@ bool ArmManipulatorController::setGoalCurrentCallback(open_manipulator_msgs::Set
                                                         open_manipulator_msgs::SetGoalCurrent::Response &res)
 {
   right_manipulator_.setGoalCurrents(req.joint_name, req.goal_current);
+  timer_thread_state_ = false;
+  pthread_join(timer_thread_, NULL);
+  right_manipulator_.commandAllGoalCurrentValues();
   // res.is_planned = right_manipulator_.sendAllGoalCurrentValue(req.goal_current);
   // return res.is_planned;
+  startTimerThread();
   return true;
 }
 
@@ -561,7 +565,7 @@ void ArmManipulatorController::process(double time)
   // left_manipulator_.processArmManipulator(time);
 
   //Added by Juan, send joint goal current
-  right_manipulator_.commandAllGoalCurrentValues();
+  // right_manipulator_.commandAllGoalCurrentValues();
 }
 
 /********************************************************************************

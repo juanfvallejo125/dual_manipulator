@@ -894,7 +894,7 @@ int main(int argc, char **argv)
   char ch;
   dualManipulatorTeleop.printText();
   std::vector<std::string> joint_names{"_J1_R", "_J2_R","_J3_R","_J4_R"};
-  std::vector<float> current{500,500,500,500};  
+  std::vector<float> current{1000,1000,1000,1000};  
   dualManipulatorTeleop.setGoalCurrent(joint_names, current);
   while (ros::ok() && (ch = std::getchar()) != 'q')
   {
