@@ -889,6 +889,7 @@ void DualManipulatorTeleop::setGoal(char ch)
 void DualManipulatorTeleop::setGoalFromOmni(){
   std::vector<double> goalJoint; goalJoint.resize(NUM_OF_JOINT*2, 0.0);
   std::vector<std::string> joint_name;
+
   joint_name.push_back("_J1_R"); 
   joint_name.push_back("_J2_R_"); 
   joint_name.push_back("_J3_R"); 
@@ -901,8 +902,15 @@ void DualManipulatorTeleop::setGoalFromOmni(){
   joint_name.push_back("_J4_L");
   joint_name.push_back("_wristJ1_L");
   joint_name.push_back("_wristJ2_L"); 
+
+  goalJoint.at(0) =  phantom_omni_present_joint_angle.at(0)-(right_arm_present_joint_angle_.at(0)-(-M_PI/2));
   goalJoint.at(1) = -phantom_omni_present_joint_angle.at(1)-right_arm_present_joint_angle_.at(1);
-  std::cout << "goalJoint.at(1) = " << goalJoint.at(1) << std::endl;
+  goalJoint.at(2) = (phantom_omni_present_joint_angle.at(2) - (-0.6397))-(right_arm_present_joint_angle_.at(2)-2.72);
+  goalJoint.at(3) = (phantom_omni_present_joint_angle.at(3)-M_PI)-(right_arm_present_joint_angle_.at(3));
+  // for(int i = 0; i < 4; i++){
+  //   std::cout << "goalJoint.at(" << i << ") = " << goalJoint.at(i) << ", ";  
+  // }
+  // std::cout << std::endl;
   setJointSpacePathFromPresent(joint_name, goalJoint, 1);
 }
 
@@ -949,7 +957,7 @@ int main(int argc, char **argv)
     //dualManipulatorTeleop.setGoal(ch);
     dualManipulatorTeleop.setGoalFromOmni();
     //Debug
-    dualManipulatorTeleop.printPresentOmniJoints();
+    //dualManipulatorTeleop.printPresentOmniJoints();
   }
 
   return 0;

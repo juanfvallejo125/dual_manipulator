@@ -31,10 +31,12 @@
 #include "open_manipulator_msgs/SetKinematicsPose.h"
 #include "open_manipulator_msgs/SetGoalCurrent.h"
 
+#include <math.h>
+
 #define NUM_OF_JOINT 6 //Modified to 6 joints for one arm
 #define DELTA 0.01
 double JOINT_DELTA = 0.05;
-double PATH_TIME = 0.1;
+double PATH_TIME = 0.02;
 
 double dt = 0.01;
 double dq = 0.005;  
