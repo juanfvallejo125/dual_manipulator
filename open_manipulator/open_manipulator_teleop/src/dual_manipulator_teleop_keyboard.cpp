@@ -29,6 +29,7 @@ DualManipulatorTeleop::DualManipulatorTeleop()
   ************************************************************/
   right_arm_present_joint_angle_.resize(NUM_OF_JOINT);
   left_arm_present_joint_angle_.resize(NUM_OF_JOINT);
+  phantom_omni_present_joint_angle.resize(NUM_OF_JOINT);
   present_kinematic_position_.resize(3);
 
   /************************************************************
@@ -69,6 +70,8 @@ void DualManipulatorTeleop::initSubscriber()
   if(using_platform){
     right_joint_states_sub_ = node_handle_.subscribe("/iiwa/right_arm_joint_states", 10, &DualManipulatorTeleop::jointStatesCallback, this);
     // left_joint_states_sub_ = node_handle_.subscribe("left_arm_joint_states", 10, &DualManipulatorTeleop::jointStatesCallback, this);
+
+    phantom_omni_joint_states_sub = node_handle_.subscribe("/phantom_omni_joint_states", 10, &DualManipulatorTeleop::omniStatesCallback, this);
   }else{
     std::string right_joint_names[NUM_OF_JOINT] = {"_J1_R_", "_J2_R_", "_J3_R_", "_J4_R_", "_wristJ1_R_", "_wristJ2_R_"};
     std::string left_joint_names[NUM_OF_JOINT] = {"_J1_L_", "_J2_L_", "_J3_L_", "_J4_L_", "_wristJ1_L_", "_wristJ2_L_"};
@@ -116,6 +119,20 @@ void DualManipulatorTeleop::jointStatesCallback(const sensor_msgs::JointState::C
   }
   right_arm_present_joint_angle_ = temp_angle;
   // Handle the left arm as well later...
+}
+
+//Called when we receive joint states from phantom omni
+void DualManipulatorTeleop::omniStatesCallback(const sensor_msgs::JointState::ConstPtr &msg){
+  std::vector<double> temp_angle;
+  temp_angle.resize(NUM_OF_JOINT, 0);
+
+  for (std::vector<int>::size_type i = 0; i < msg->name.size(); i ++){
+    if (!msg->name.at(i).compare("waist"))  temp_angle.at(0) = (msg->position.at(i));
+    else if (!msg->name.at(i).compare("shoulder"))  temp_angle.at(1) = (msg->position.at(i));
+    else if (!msg->name.at(i).compare("elbow"))  temp_angle.at(2) = (msg->position.at(i));
+    else if (!msg->name.at(i).compare("wrist1"))  temp_angle.at(3) = (msg->position.at(i));
+  }
+  phantom_omni_present_joint_angle = temp_angle;
 }
 
 void DualManipulatorTeleop::kinematicsPoseCallback(const open_manipulator_msgs::KinematicsPose::ConstPtr &msg)// Edit for use with Dynamixels
@@ -869,6 +886,26 @@ void DualManipulatorTeleop::setGoal(char ch)
   //   setJointSpacePath(joint_name, joint_angle, path_time);
   }
 
+void DualManipulatorTeleop::setGoalFromOmni(){
+  std::vector<double> goalJoint; goalJoint.resize(NUM_OF_JOINT*2, 0.0);
+  std::vector<std::string> joint_name;
+  joint_name.push_back("_J1_R"); 
+  joint_name.push_back("_J2_R_"); 
+  joint_name.push_back("_J3_R"); 
+  joint_name.push_back("_J4_R");
+  joint_name.push_back("_wristJ1_R"); 
+  joint_name.push_back("_wristJ2_R"); 
+  joint_name.push_back("_J1_L");
+  joint_name.push_back("_J2_L_");
+  joint_name.push_back("_J3_L");
+  joint_name.push_back("_J4_L");
+  joint_name.push_back("_wristJ1_L");
+  joint_name.push_back("_wristJ2_L"); 
+  goalJoint.at(1) = -phantom_omni_present_joint_angle.at(1)-right_arm_present_joint_angle_.at(1);
+  std::cout << "goalJoint.at(1) = " << goalJoint.at(1) << std::endl;
+  setJointSpacePathFromPresent(joint_name, goalJoint, 1);
+}
+
 
 void DualManipulatorTeleop::restoreTerminalSettings(void)
 {
@@ -885,6 +922,14 @@ void DualManipulatorTeleop::disableWaitingForEnter(void)
   tcsetattr(0, TCSANOW, &newt);  /* Apply settings */
 }
 
+void DualManipulatorTeleop::printPresentOmniJoints(){
+  for(int i = 0; i < phantom_omni_present_joint_angle.size(); i++){
+    std::cout << phantom_omni_present_joint_angle.at(i) << ", ";
+  }
+  std::cout << std::endl;
+}
+
+
 int main(int argc, char **argv)
 {
   // Init ROS node
@@ -896,12 +941,15 @@ int main(int argc, char **argv)
   std::vector<std::string> joint_names{"_J1_R", "_J2_R","_J3_R","_J4_R"};
   std::vector<float> current{1000,1000,1000,1000};  
   dualManipulatorTeleop.setGoalCurrent(joint_names, current);
-  while (ros::ok() && (ch = std::getchar()) != 'q')
+  while (ros::ok())// && (ch = std::getchar()) != 'q')
   {
     ros::spinOnce();
-    dualManipulatorTeleop.printText();
+    //dualManipulatorTeleop.printText();
     ros::spinOnce();
-    dualManipulatorTeleop.setGoal(ch);
+    //dualManipulatorTeleop.setGoal(ch);
+    dualManipulatorTeleop.setGoalFromOmni();
+    //Debug
+    dualManipulatorTeleop.printPresentOmniJoints();
   }
 
   return 0;

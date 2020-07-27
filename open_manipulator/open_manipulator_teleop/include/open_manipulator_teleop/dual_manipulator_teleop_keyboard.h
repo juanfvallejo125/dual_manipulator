@@ -49,8 +49,14 @@ class DualManipulatorTeleop
   void printText();
   void setGoal(char ch);
 
+  void setGoalFromOmni();
+
   //Added by Juan
   bool setGoalCurrent(std::vector<std::string> joint_name, std::vector<float> goal_current);
+
+
+  // Debug
+  void printPresentOmniJoints();
 
  private:
   /*****************************************************************************
@@ -65,6 +71,8 @@ class DualManipulatorTeleop
   std::vector<double> right_arm_present_joint_angle_;
   std::vector<double> left_arm_present_joint_angle_;
   std::vector<double> present_kinematic_position_;
+
+  std::vector<double> phantom_omni_present_joint_angle;
 
   /*****************************************************************************
   ** ROS Parameters
@@ -85,11 +93,14 @@ class DualManipulatorTeleop
   ros::Subscriber right_kinematics_pose_sub_;
   ros::Subscriber left_kinematics_pose_sub_;
 
+  ros::Subscriber phantom_omni_joint_states_sub;
+
   std::vector<ros::Subscriber> right_gazebo_joints_subs;
   std::vector<ros::Subscriber> left_gazebo_joints_subs;
 
   void jointStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
   void kinematicsPoseCallback(const open_manipulator_msgs::KinematicsPose::ConstPtr &msg);
+  void omniStatesCallback(const sensor_msgs::JointState::ConstPtr &msg);
 
   void J1_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
   void J2_R_commandCallback(const std_msgs::Float64::ConstPtr &msg);
@@ -131,6 +142,8 @@ class DualManipulatorTeleop
   void restoreTerminalSettings(void);
   std::vector<double> getPresentJointAngle();
   std::vector<double> getPresentKinematicsPose();
+
+
 };
 
 #endif //OPEN_MANIPULATOR_TELEOP_KEYBOARD_H_

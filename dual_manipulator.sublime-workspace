@@ -4,12 +4,68 @@
 		"selected_items":
 		[
 			[
-				"is",
-				"is_planned"
+				"pha",
+				"phantom_omni_joint_states_sub\tros::Subscriber phantom_omni_joint_states_sub"
+			],
+			[
+				"phant",
+				"phantom_omni_present_joint_angle\tstd::vector<double> phantom_omni_present_joint_angle"
+			],
+			[
+				"joint",
+				"joint_name"
 			],
 			[
 				"set",
-				"setGoalCurrentCallback\tbool setGoalCurrentCallback(int &req, int &res)"
+				"setGoalFromOmni\tvoid setGoalFromOmni()"
+			],
+			[
+				"setJoint",
+				"setJointSpacePathFromPresent\tbool setJointSpacePathFromPresent(std::vector<std::string> joint_name, std::vector<double> joint_angle, double path_time)"
+			],
+			[
+				"right",
+				"right_arm_present_joint_angle_"
+			],
+			[
+				"phantom",
+				"phantom_omni_present_joint_angle\tstd::vector<double> phantom_omni_present_joint_angle"
+			],
+			[
+				"timer",
+				"timercmp\ttimercmp(a, b, CMP)"
+			],
+			[
+				"joi",
+				"joint_names"
+			],
+			[
+				"getGoal",
+				"getAllGoalCurrentValues\tstd::vector<float> getAllGoalCurrentValues()"
+			],
+			[
+				"getAll",
+				"getAllActiveJointValue"
+			],
+			[
+				"open",
+				"open_manipulator_msgs"
+			],
+			[
+				"right_arm",
+				"right_arm_joint_current_pub\tros::Publisher right_arm_joint_current_pub"
+			],
+			[
+				"push",
+				"push_back\tvoid push_back(value_type &&__x)"
+			],
+			[
+				"be",
+				"begin\titerator begin()"
+			],
+			[
+				"is",
+				"is_planned"
 			],
 			[
 				"ArmMan",
@@ -64,16 +120,8 @@
 				"DualManipulatorTeleop"
 			],
 			[
-				"right",
-				"right_joint_names"
-			],
-			[
 				"node",
 				"node_handle_"
-			],
-			[
-				"joint",
-				"joint_damping"
 			],
 			[
 				"joit",
@@ -103,7 +151,7 @@
 			"file": "open_manipulator/open_manipulator_teleop/include/open_manipulator_teleop/dual_manipulator_teleop_keyboard.h",
 			"settings":
 			{
-				"buffer_size": 5524,
+				"buffer_size": 5731,
 				"encoding": "UTF-8 with BOM",
 				"line_ending": "Unix"
 			}
@@ -112,7 +160,7 @@
 			"file": "open_manipulator/open_manipulator_teleop/src/dual_manipulator_teleop_keyboard.cpp",
 			"settings":
 			{
-				"buffer_size": 36083,
+				"buffer_size": 37446,
 				"encoding": "UTF-8 with BOM",
 				"line_ending": "Unix"
 			}
@@ -121,7 +169,7 @@
 			"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
 			"settings":
 			{
-				"buffer_size": 32664,
+				"buffer_size": 33752,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -130,16 +178,7 @@
 			"file": "open_manipulator/open_manipulator_controller/include/open_manipulator_controller/arm_manipulator_controller.h",
 			"settings":
 			{
-				"buffer_size": 8883,
-				"encoding": "UTF-8 with BOM",
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
-			"settings":
-			{
-				"buffer_size": 4152,
+				"buffer_size": 9042,
 				"encoding": "UTF-8 with BOM",
 				"line_ending": "Unix"
 			}
@@ -157,7 +196,7 @@
 			"file": "open_manipulator/open_manipulator_libs/src/arm_manipulator.cpp",
 			"settings":
 			{
-				"buffer_size": 14376,
+				"buffer_size": 15467,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -166,7 +205,7 @@
 			"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/arm_manipulator.h",
 			"settings":
 			{
-				"buffer_size": 2224,
+				"buffer_size": 2437,
 				"encoding": "UTF-8 with BOM",
 				"line_ending": "Unix"
 			}
@@ -204,6 +243,14 @@
 			{
 				"buffer_size": 56617,
 				"encoding": "UTF-8 with BOM",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "robotis_manipulator/src/robotis_manipulator/robotis_manipulator_common.cpp",
+			"settings":
+			{
+				"buffer_size": 29913,
 				"line_ending": "Unix"
 			}
 		}
@@ -250,26 +297,30 @@
 	[
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_controller",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_controller/include",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_controller/include/open_manipulator_controller",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_libs",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_libs/include",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_libs/src",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_teleop",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_teleop/include",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_teleop/include/open_manipulator_teleop",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_teleop/src",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator_msgs",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator_msgs/msg",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/src",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/src/robotis_manipulator"
 	],
 	"file_history":
 	[
+		"/home/juan/Documents/catkin_ws/src/phantom_omni/src/omni.cpp",
+		"/home/juan/Documents/catkin_ws/src/phantom_omni/README.md",
+		"/usr/include/HDU/hduVector.h",
+		"/home/juan/Documents/catkin_ws/src/phantom_omni/launch/omni_headless.launch",
+		"/home/juan/Documents/catkin_ws/src/phantom_omni/launch/omni.launch",
+		"/home/juan/Documents/catkin_ws/src/PhantomOmni/omni_driver/include/omnibase.h",
+		"/opt/ros/melodic/include/sensor_msgs/JointState.h",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/src/robotis_manipulator/robotis_manipulator_common.cpp",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator_msgs/msg/JointCurrent.msg",
+		"/home/juan/Documents/catkin_ws/src/dual_manipulator/DynamixelSDK/documents/cpp/html/tabs.css",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/dynamixel-workbench/dynamixel_workbench_toolbox/src/dynamixel_workbench_toolbox/dynamixel_workbench.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/dynamixel-workbench/dynamixel_workbench_toolbox/src/dynamixel_workbench_toolbox/dynamixel_driver.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/dynamixel-workbench/dynamixel_workbench_toolbox/src/dynamixel_workbench_toolbox/dynamixel_tool.cpp",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/src/robotis_manipulator/robotis_manipulator_common.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator/robotis_manipulator_trajectory_generator.h",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/src/robotis_manipulator/robotis_manipulator_trajectory_generator.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_controller/include/open_manipulator_controller/arm_manipulator_controller.h",
@@ -279,7 +330,6 @@
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator/robotis_manipulator.h",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_libs/src/custom_trajectory.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_libs/include/open_manipulator_libs/custom_trajectory.h",
-		"/home/juan/Documents/catkin_ws/src/dual_manipulator/robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_teleop/src/dual_manipulator_teleop_keyboard.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_libs/src/dynamixel.cpp",
@@ -291,7 +341,6 @@
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/dual_manipulator.sublime-project",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_control_gui/src/qnode.cpp",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_teleop/CMakeLists.txt",
-		"/opt/ros/melodic/include/sensor_msgs/JointState.h",
 		"/home/juan/Documents/catkin_ws/src/dual_manipulator/open_manipulator/open_manipulator_control_gui/include/open_manipulator_control_gui/qnode.hpp",
 		"/home/juan/Documents/catkin_ws/src/open_manipulator/open_manipulator_controller/include/open_manipulator_controller/open_manipulator_controller.h",
 		"/home/juan/Documents/catkin_ws/src/open_manipulator/open_manipulator_controller/src/open_manipulator_controller.cpp",
@@ -340,7 +389,7 @@
 	],
 	"find":
 	{
-		"height": 26.0
+		"height": 40.0
 	},
 	"find_in_files":
 	{
@@ -354,6 +403,20 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"node_handle",
+			"setGoal",
+			"hduVector3D",
+			"HDdouble",
+			"omni_name",
+			"init",
+			"omni",
+			"setGoalCurrent",
+			"pthread",
+			"addJoin",
+			"add",
+			"joint_actuator_",
+			"param",
+			"setGoalCurrent",
 			"current",
 			"writeRegister",
 			"write",
@@ -418,7 +481,7 @@
 	"groups":
 	[
 		{
-			"selected": 2,
+			"selected": 0,
 			"sheets":
 			[
 				{
@@ -427,15 +490,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 5524,
+						"buffer_size": 5731,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1362,
-								1362
+								2251,
+								2251
 							]
 						],
 						"settings":
@@ -445,10 +508,10 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 306.0,
+						"translation.y": 741.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 0,
 					"type": "text"
 				},
 				{
@@ -457,75 +520,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 36083,
+						"buffer_size": 37446,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								35828,
-								35828
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 14791.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 32664,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								11729,
-								11729
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 4574.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "open_manipulator/open_manipulator_controller/include/open_manipulator_controller/arm_manipulator_controller.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 8883,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1089,
-								1089
+								6320,
+								6320
 							]
 						],
 						"settings":
@@ -538,24 +541,24 @@
 						"translation.y": 1428.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 1,
 					"type": "text"
 				},
 				{
-					"buffer": 4,
-					"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator_manager.h",
+					"buffer": 2,
+					"file": "open_manipulator/open_manipulator_controller/src/arm_manipulator_controller.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4152,
+						"buffer_size": 33752,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2879,
-								2879
+								19126,
+								19126
 							]
 						],
 						"settings":
@@ -565,14 +568,44 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 996.0,
+						"translation.y": 10650.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "open_manipulator/open_manipulator_controller/include/open_manipulator_controller/arm_manipulator_controller.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 9042,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1995,
+								1995
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 544.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 4,
 					"file": "robotis_manipulator/src/robotis_manipulator/robotis_manipulator_manager.cpp",
 					"semi_transient": false,
 					"settings":
@@ -595,27 +628,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 204.0,
+						"translation.y": 87.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 5,
 					"file": "open_manipulator/open_manipulator_libs/src/arm_manipulator.cpp",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 14376,
+						"buffer_size": 15467,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								14284,
-								14284
+								3098,
+								3098
 							]
 						],
 						"settings":
@@ -625,27 +658,27 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4921.0,
+						"translation.y": 765.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 7,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 6,
 					"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/arm_manipulator.h",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2224,
+						"buffer_size": 2437,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2127,
-								2127
+								2436,
+								2436
 							]
 						],
 						"settings":
@@ -653,14 +686,14 @@
 							"syntax": "Packages/C++/C++.sublime-syntax"
 						},
 						"translation.x": 0.0,
-						"translation.y": 605.0,
+						"translation.y": 578.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 7,
 					"file": "open_manipulator/open_manipulator_libs/src/dynamixel.cpp",
 					"semi_transient": false,
 					"settings":
@@ -672,8 +705,8 @@
 						"selection":
 						[
 							[
-								15942,
-								15942
+								18784,
+								18784
 							]
 						],
 						"settings":
@@ -683,14 +716,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 8544.0,
+						"translation.y": 9579.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 8,
 					"file": "open_manipulator/open_manipulator_libs/include/open_manipulator_libs/dynamixel.h",
 					"semi_transient": false,
 					"settings":
@@ -702,8 +735,8 @@
 						"selection":
 						[
 							[
-								1125,
-								1125
+								5498,
+								5498
 							]
 						],
 						"settings":
@@ -712,15 +745,15 @@
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 5.0,
-						"translation.y": 826.0,
+						"translation.x": 0.0,
+						"translation.y": 2065.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 10,
+					"buffer": 9,
 					"file": "robotis_manipulator/include/robotis_manipulator/robotis_manipulator.h",
 					"semi_transient": false,
 					"settings":
@@ -732,8 +765,8 @@
 						"selection":
 						[
 							[
-								7346,
-								7346
+								2291,
+								2291
 							]
 						],
 						"settings":
@@ -743,14 +776,14 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2509.0,
+						"translation.y": 945.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 11,
+					"stack_index": 10,
 					"type": "text"
 				},
 				{
-					"buffer": 11,
+					"buffer": 10,
 					"file": "robotis_manipulator/src/robotis_manipulator/robotis_manipulator.cpp",
 					"semi_transient": false,
 					"settings":
@@ -762,8 +795,8 @@
 						"selection":
 						[
 							[
-								22742,
-								22742
+								1943,
+								1943
 							]
 						],
 						"settings":
@@ -773,10 +806,40 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 10675.0,
+						"translation.y": 520.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 10,
+					"stack_index": 9,
+					"type": "text"
+				},
+				{
+					"buffer": 11,
+					"file": "robotis_manipulator/src/robotis_manipulator/robotis_manipulator_common.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 29913,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2371,
+								2371
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1574.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 11,
 					"type": "text"
 				}
 			]
