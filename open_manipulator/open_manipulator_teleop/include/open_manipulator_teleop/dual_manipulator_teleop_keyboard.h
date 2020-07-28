@@ -23,6 +23,11 @@
 
 #include <termios.h>
 
+#include <boost/thread.hpp>
+#include <unistd.h>
+
+#include <iostream>
+
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Float64.h>
@@ -36,7 +41,7 @@
 #define NUM_OF_JOINT 6 //Modified to 6 joints for one arm
 #define DELTA 0.01
 double JOINT_DELTA = 0.05;
-double PATH_TIME = 0.02;
+double PATH_TIME = 0.25;
 
 double dt = 0.01;
 double dq = 0.005;  
@@ -56,6 +61,8 @@ class DualManipulatorTeleop
   //Added by Juan
   bool setGoalCurrent(std::vector<std::string> joint_name, std::vector<float> goal_current);
 
+  static void *omniThreadRoutine(void *param);
+  void startOmniThread();
 
   // Debug
   void printPresentOmniJoints();
@@ -81,6 +88,11 @@ class DualManipulatorTeleop
   *****************************************************************************/
   bool using_platform;
 
+  /*****************************************************************************
+  ** Threads
+  *****************************************************************************/
+  pthread_t omni_thread;
+  bool omni_thread_state;
   /*****************************************************************************
   ** Init Functions
   *****************************************************************************/
